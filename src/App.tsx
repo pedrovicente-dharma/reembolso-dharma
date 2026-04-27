@@ -254,7 +254,7 @@ function App() {
   function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
 
   const total = comp.reduce((s, c) => s + c.valor, 0)
-  const podGerar = sol.nome && sol.cpf && sol.banco && sol.agencia && sol.conta && sol.chavePix && sol.titular && comp.length > 0
+  const podGerar = sol.nome && sol.cpf && sol.banco && sol.agencia && sol.conta && sol.titular && comp.length > 0
 
   return (
     <div style={page}>
@@ -288,7 +288,7 @@ function App() {
             <div><label style={labelStyle}>Banco *</label><input type="text" value={sol.banco} onChange={e => hSol('banco', e.target.value)} placeholder="Ex: NU PAGAMENTOS S.A (260)" style={inputStyle} /></div>
             <div><label style={labelStyle}>Agência *</label><input type="text" value={sol.agencia} onChange={e => hSol('agencia', e.target.value)} placeholder="0001" style={inputStyle} /></div>
             <div><label style={labelStyle}>Conta *</label><input type="text" value={sol.conta} onChange={e => hSol('conta', e.target.value)} placeholder="0000000-0" style={inputStyle} /></div>
-            <div><label style={labelStyle}>Chave Pix *</label><input type="text" value={sol.chavePix} onChange={e => hSol('chavePix', e.target.value)} placeholder="CPF, e-mail ou telefone" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Chave Pix</label><input type="text" value={sol.chavePix} onChange={e => hSol('chavePix', e.target.value)} placeholder="CPF, e-mail ou telefone" style={inputStyle} /></div>
             <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Titular da conta *</label><input type="text" value={sol.titular} onChange={e => hSol('titular', e.target.value)} placeholder="Nome completo do titular" style={inputStyle} /></div>
           </div>
         </div>
