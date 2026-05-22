@@ -306,7 +306,7 @@ function App() {
   const [statusMsg, setStatusMsg] = useState('')
 
   function hSol(campo: keyof Solicitante, v: string) { setSol({ ...sol, [campo]: v }) }
-
+function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
   function addComp() {
     if (!desc || !val || Number(val) <= 0) return
     setComp([...comp, { id: Date.now().toString(), descricao: desc, valor: Number(val), arquivo: arq, nomeArquivo: arq?.name || '' }])
