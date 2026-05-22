@@ -1,7 +1,15 @@
-const { google } = require('googleapis')
-const { Readable } = require('stream')
+import { google } from 'googleapis'
+import { Readable } from 'stream'
 
-module.exports = async function handler(req, res) {
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' })
   }
@@ -51,12 +59,4 @@ module.exports = async function handler(req, res) {
     console.error('Erro:', error)
     return res.status(500).json({ error: error.message || 'Erro no servidor' })
   }
-}
-
-module.exports.config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
 }
