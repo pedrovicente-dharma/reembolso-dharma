@@ -68,7 +68,7 @@ function loadImage(url: string): Promise<string> {
 }
 
 // ========== GERAR PDF ==========
-async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, numeracao: string) {
+async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, numeracao: string): Promise<jsPDF> {
   const doc = new jsPDF()
   const w = doc.internal.pageSize.getWidth()
   let y = 15
@@ -122,7 +122,7 @@ async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, nu
   doc.text('DETALHAMENTO', 24, y + 5.5); doc.setTextColor(0, 0, 0)
 
   y += 12
-  const colDesc = 20, colRef = 100, colValor = w - 20
+  const colDesc = 20, colRef = 95, colValor = w - 20
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9)
   doc.text('Descrição', colDesc, y); doc.text('Referência', colRef, y)
   doc.text('Valor [R$]', colValor, y, { align: 'right' })
@@ -130,10 +130,19 @@ async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, nu
 
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
   comp.forEach(c => {
-    doc.text(c.descricao, colDesc, y)
-    doc.text(c.nomeArquivo || '—', colRef, y)
+    // Quebra descrição longa em múltiplas linhas (máx 35 caracteres)
+    const descLines = doc.splitTextToSize(c.descricao, 70)
+    const refLines = doc.splitTextToSize(c.nomeArquivo || '—', 65)
+    const maxLines = Math.max(descLines.length, refLines.length)
+
+    descLines.forEach((line: string, i: number) => {
+      doc.text(line, colDesc, y + (i * 4))
+    })
+    refLines.forEach((line: string, i: number) => {
+      doc.text(line, colRef, y + (i * 4))
+    })
     doc.text(formatarReais(c.valor).replace('R$\u00a0', ''), colValor, y, { align: 'right' })
-    y += 6
+    y += maxLines * 4 + 3
   })
 
   y += 2; doc.setLineWidth(0.5); doc.line(20, y, w - 20, y); y += 7
@@ -158,6 +167,58 @@ async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, nu
   if (sol.chavePix) { doc.text(`Chave Pix: ${sol.chavePix}`, w / 2, y, { align: 'center' }); y += 6 }
 
   doc.save(`nota-debito-${numeracao.replace(/\//g, '-')}.pdf`)
+  return doc
+}
+
+// ========== UPLOAD PARA DRIVE ==========
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      resolve(result.split(',')[1])
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+async function uploadParaDrive(sol: Solicitante, comp: Comprovante[], numeracao: string, pdfDoc: jsPDF) {
+  const data = new Date().toISOString().split('T')[0]
+  const folderName = `${data} - ${sol.nome} - ${numeracao}`
+
+  const pdfBase64 = pdfDoc.output('datauristring').split(',')[1]
+  const files: { name: string; mimeType: string; data: string }[] = [
+    {
+      name: `nota-debito-${numeracao.replace(/\//g, '-')}.pdf`,
+      mimeType: 'application/pdf',
+      data: pdfBase64,
+    },
+  ]
+
+  for (const c of comp) {
+    if (c.arquivo) {
+      const base64 = await fileToBase64(c.arquivo)
+      files.push({
+        name: c.arquivo.name,
+        mimeType: c.arquivo.type,
+        data: base64,
+      })
+    }
+  }
+
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ folderName, files }),
+  })
+
+  if (!response.ok) {
+    const err = await response.json()
+    throw new Error(err.error || 'Erro no upload')
+  }
+
+  return response.json()
 }
 
 // ========== ESTILOS ==========
@@ -241,6 +302,8 @@ function App() {
   const [val, setVal] = useState('')
   const [arq, setArq] = useState<File | null>(null)
   const [num, setNum] = useState('ND 001/2025')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [statusMsg, setStatusMsg] = useState('')
 
   function hSol(campo: keyof Solicitante, v: string) { setSol({ ...sol, [campo]: v }) }
 
@@ -251,10 +314,24 @@ function App() {
     const fi = document.getElementById('fi') as HTMLInputElement; if (fi) fi.value = ''
   }
 
-  function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
+  async function handleGerar() {
+    setStatus('loading')
+    setStatusMsg('Gerando PDF...')
+    try {
+      const pdfDoc = await gerarPDF(sol, comp, total, num)
+      setStatusMsg('Enviando pro Drive...')
+      await uploadParaDrive(sol, comp, num, pdfDoc)
+      setStatus('success')
+      setStatusMsg('Nota gerada e enviada pro Drive!')
+      setTimeout(() => setStatus('idle'), 4000)
+    } catch (err: any) {
+      setStatus('error')
+      setStatusMsg(err.message || 'Erro ao gerar nota')
+    }
+  }
 
   const total = comp.reduce((s, c) => s + c.valor, 0)
-  const podGerar = sol.nome && sol.cpf && sol.banco && sol.agencia && sol.conta && sol.chavePix && sol.titular && comp.length > 0
+  const podGerar = sol.nome && sol.cpf && sol.banco && sol.agencia && sol.conta && sol.titular && comp.length > 0
 
   return (
     <div style={page}>
@@ -288,7 +365,7 @@ function App() {
             <div><label style={labelStyle}>Banco *</label><input type="text" value={sol.banco} onChange={e => hSol('banco', e.target.value)} placeholder="Ex: NU PAGAMENTOS S.A (260)" style={inputStyle} /></div>
             <div><label style={labelStyle}>Agência *</label><input type="text" value={sol.agencia} onChange={e => hSol('agencia', e.target.value)} placeholder="0001" style={inputStyle} /></div>
             <div><label style={labelStyle}>Conta *</label><input type="text" value={sol.conta} onChange={e => hSol('conta', e.target.value)} placeholder="0000000-0" style={inputStyle} /></div>
-            <div><label style={labelStyle}>Chave Pix *</label><input type="text" value={sol.chavePix} onChange={e => hSol('chavePix', e.target.value)} placeholder="CPF, e-mail ou telefone" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Chave Pix</label><input type="text" value={sol.chavePix} onChange={e => hSol('chavePix', e.target.value)} placeholder="CPF, e-mail ou telefone" style={inputStyle} /></div>
             <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Titular da conta *</label><input type="text" value={sol.titular} onChange={e => hSol('titular', e.target.value)} placeholder="Nome completo do titular" style={inputStyle} /></div>
           </div>
         </div>
@@ -376,14 +453,25 @@ function App() {
 
         {/* BOTÃO GERAR */}
         <button
-          onClick={() => gerarPDF(sol, comp, total, num)}
-          disabled={!podGerar}
-          style={{ ...btnGerar, opacity: podGerar ? 1 : 0.4, cursor: podGerar ? 'pointer' : 'not-allowed' }}
+          onClick={handleGerar}
+          disabled={!podGerar || status === 'loading'}
+          style={{ ...btnGerar, opacity: podGerar && status !== 'loading' ? 1 : 0.4, cursor: podGerar && status !== 'loading' ? 'pointer' : 'not-allowed' }}
         >
-          Gerar nota de débito (PDF)
+          {status === 'loading' ? statusMsg : 'Gerar nota de débito (PDF + Drive)'}
         </button>
 
-        {!podGerar && (
+        {status === 'success' && (
+          <p style={{ color: '#16a34a', fontSize: 13, textAlign: 'center', marginTop: 10, fontWeight: 500 }}>
+            ✓ {statusMsg}
+          </p>
+        )}
+        {status === 'error' && (
+          <p style={{ color: '#dc2626', fontSize: 13, textAlign: 'center', marginTop: 10, fontWeight: 500 }}>
+            ✗ {statusMsg}
+          </p>
+        )}
+
+        {!podGerar && status === 'idle' && (
           <p style={{ color: '#64748b', fontSize: 12, textAlign: 'center', marginTop: 10 }}>
             Preencha os dados obrigatórios (*) e adicione pelo menos um comprovante
           </p>
