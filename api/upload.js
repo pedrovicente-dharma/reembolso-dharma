@@ -22,13 +22,13 @@ export default async function handler(req, res) {
     }
 
     const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      'https://developers.google.com/oauthplayground'
+  process.env.GOOGLE_CLIENT_ID?.trim(),
+  process.env.GOOGLE_CLIENT_SECRET?.trim(),
+  'https://developers.google.com/oauthplayground'
     )
 
     oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN?.trim(),
     })
 
     const drive = google.drive({ version: 'v3', auth: oauth2Client })
