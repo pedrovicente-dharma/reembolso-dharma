@@ -7,7 +7,7 @@ interface Solicitante {
   banco: string; agencia: string; conta: string; chavePix: string; titular: string
 }
 interface Comprovante {
-  id: string; descricao: string; valor: number; arquivo: File | null; nomeArquivo: string
+  id: string; descricao: string; centroCusto: string; projeto: string; valor: number; arquivo: File | null; nomeArquivo: string
 }
 
 // ========== DADOS DA DHARMA ==========
@@ -299,6 +299,8 @@ function App() {
   })
   const [comp, setComp] = useState<Comprovante[]>([])
   const [desc, setDesc] = useState('')
+  const [centroCusto, setCentroCusto] = useState('')
+  const [projeto, setProjeto] = useState('')
   const [val, setVal] = useState('')
   const [arq, setArq] = useState<File | null>(null)
   const [num, setNum] = useState('ND 001/2025')
@@ -306,13 +308,14 @@ function App() {
   const [statusMsg, setStatusMsg] = useState('')
 
   function hSol(campo: keyof Solicitante, v: string) { setSol({ ...sol, [campo]: v }) }
-function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
+
   function addComp() {
     if (!desc || !val || Number(val) <= 0) return
-    setComp([...comp, { id: Date.now().toString(), descricao: desc, valor: Number(val), arquivo: arq, nomeArquivo: arq?.name || '' }])
-    setDesc(''); setVal(''); setArq(null)
+    setComp([...comp, { id: Date.now().toString(), descricao: desc, centroCusto, projeto, valor: Number(val), arquivo: arq, nomeArquivo: arq?.name || '' }])
+    setDesc(''); setCentroCusto(''); setProjeto(''); setVal(''); setArq(null)
     const fi = document.getElementById('fi') as HTMLInputElement; if (fi) fi.value = ''
   }
+  function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
 
   async function handleGerar() {
     setStatus('loading')
