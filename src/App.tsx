@@ -297,6 +297,7 @@ function App() {
     nome: '', cpf: '', rg: '', endereco: '',
     banco: '', agencia: '', conta: '', chavePix: '', titular: '',
   })
+  
   const [comp, setComp] = useState<Comprovante[]>([])
   const [desc, setDesc] = useState('')
   const [centroCusto, setCentroCusto] = useState('')
@@ -310,13 +311,12 @@ function App() {
   function hSol(campo: keyof Solicitante, v: string) { setSol({ ...sol, [campo]: v }) }
 
   function addComp() {
-    if (!desc || !val || Number(val) <= 0) return
+    if (!desc || !centroCusto || !projeto || !val || Number(val) <= 0) return
     setComp([...comp, { id: Date.now().toString(), descricao: desc, centroCusto, projeto, valor: Number(val), arquivo: arq, nomeArquivo: arq?.name || '' }])
     setDesc(''); setCentroCusto(''); setProjeto(''); setVal(''); setArq(null)
     const fi = document.getElementById('fi') as HTMLInputElement; if (fi) fi.value = ''
   }
-  function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
-
+function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
   async function handleGerar() {
     setStatus('loading')
     setStatusMsg('Gerando PDF...')
@@ -379,22 +379,31 @@ function App() {
             <span style={{ ...sectionIcon, backgroundColor: '#f3f4f6', color: '#4b5563' }}>&#128206;</span>
             Comprovantes
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 20 }}>
-            <div style={{ flex: 2, minWidth: 200 }}>
-              <label style={labelStyle}>Descrição do custo *</label>
-              <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Reembolso de despesas com reunião comercial" style={inputStyle} />
-            </div>
-            <div style={{ flex: 1, minWidth: 120 }}>
-              <label style={labelStyle}>Valor (R$) *</label>
-              <input type="number" step="0.01" min="0" value={val} onChange={e => setVal(e.target.value)} placeholder="0,00" style={inputStyle} />
-            </div>
-            <div style={{ flex: 1, minWidth: 150 }}>
-              <label style={labelStyle}>Comprovante</label>
-              <input id="fi" type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setArq(e.target.files?.[0] || null)} style={{ fontSize: 12, color: '#64748b' }} />
-            </div>
-            <button onClick={addComp} style={btnPrimary}>+ Adicionar</button>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div>
+            <label style={labelStyle}>Descrição do produto *</label>
+            <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Almoço com cliente" style={inputStyle} />
           </div>
-
+          <div>
+            <label style={labelStyle}>Centro de Custo *</label>
+            <input type="text" value={centroCusto} onChange={e => setCentroCusto(e.target.value)} placeholder="Ex: Marketing" style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Projeto *</label>
+            <input type="text" value={projeto} onChange={e => setProjeto(e.target.value)} placeholder="Ex: Campanha Q1" style={inputStyle} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 20 }}>
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <label style={labelStyle}>Valor (R$) *</label>
+            <input type="number" step="0.01" min="0" value={val} onChange={e => setVal(e.target.value)} placeholder="0,00" style={inputStyle} />
+          </div>
+          <div style={{ flex: 2, minWidth: 200 }}>
+            <label style={labelStyle}>Comprovante</label>
+            <input id="fi" type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => setArq(e.target.files?.[0] || null)} style={{ fontSize: 12, color: '#9ca3af' }} />
+          </div>
+          <button onClick={addComp} style={btnPrimary}>+ Adicionar</button>
+        </div>
           {comp.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 20px', backgroundColor: '#f8fafc', borderRadius: 12, border: '2px dashed #e2e8f0' }}>
               <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>Nenhum comprovante adicionado ainda</p>
