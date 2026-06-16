@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Comprovante } from '../types'
 import { ComprovanteInputSchema } from '../schemas'
 import { formatarReais } from '../utils/formatarReais'
-import { card, gridStyle, labelStyle, inputStyle, sectionTitle, sectionIcon, btnPrimary, btnDanger } from '../styles'
+import { card, labelStyle, inputStyle, sectionTitle, sectionIcon, btnPrimary, btnDanger } from '../styles'
 
 type CompErrors = Partial<{ descricao: string; centroCusto: string; projeto: string; valor: string }>
 
