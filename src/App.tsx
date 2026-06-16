@@ -1,168 +1,12 @@
-import { useState } from 'react'
-import jsPDF from 'jspdf'
+﻿import { useState } from 'react'
 import type { Solicitante, Comprovante } from './types'
-import { DHARMA } from './constants'
 import {
   page, header, logoCircle, card, gridStyle, labelStyle, inputStyle,
   sectionTitle, sectionIcon, btnPrimary, btnDanger, btnGerar, subHeader,
 } from './styles'
 import { valorPorExtenso } from './utils/valorPorExtenso'
 import { formatarReais } from './utils/formatarReais'
-import { loadImage } from './utils/loadImage'
-
-// ========== GERAR PDF ==========
-async function gerarPDF(sol: Solicitante, comp: Comprovante[], total: number, numeracao: string): Promise<jsPDF> {
-  const doc = new jsPDF()
-  const w = doc.internal.pageSize.getWidth()
-  let y = 15
-
-  // Logo à esquerda + dados da empresa centralizados
-  const logoData = await loadImage('/dharma-logo.png')
-  if (logoData) {
-    doc.addImage(logoData, 'PNG', 20, y, 22, 22)
-  }
-
-  doc.setFontSize(14); doc.setFont('helvetica', 'bold')
-  doc.text(DHARMA.razaoSocial, w / 2, y + 6, { align: 'center' })
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal')
-  doc.text(`CNPJ: ${DHARMA.cnpj}`, w / 2, y + 12, { align: 'center' })
-  doc.text(DHARMA.endereco, w / 2, y + 17, { align: 'center' })
-  doc.text(DHARMA.cidade, w / 2, y + 22, { align: 'center' })
-
-  y += 28
-  doc.setLineWidth(0.5); doc.line(20, y, w - 20, y)
-
-  y += 12; doc.setFontSize(14); doc.setFont('helvetica', 'bold')
-  doc.text('NOTA DE DÉBITO', w / 2, y, { align: 'center' })
-
-  // Solicitante
-  y += 14; doc.setFontSize(11); doc.text('Solicitante', 20, y)
-  y += 7; doc.setFontSize(10); doc.setFont('helvetica', 'normal')
-  doc.text(`Nome: ${sol.nome}`, 20, y); y += 5
-  doc.text(`CPF: ${sol.cpf}`, 20, y)
-  if (sol.rg) doc.text(`RG: ${sol.rg}`, 110, y)
-  y += 5
-  if (sol.endereco) { doc.text(`Endereço: ${sol.endereco}`, 20, y); y += 5 }
-
-  // Numeração / Valor / Data — simples com linha
-  y += 8; doc.setLineWidth(0.3); doc.line(20, y, w - 20, y); y += 7
-  const hoje = new Date()
-  const dataEmissao = hoje.toLocaleDateString('pt-BR')
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10)
-  const colStart = 20, colEnd = w - 20, colSpacing = (colEnd - colStart) / 3
-  const cols = [colStart + colSpacing * 0.5, colStart + colSpacing * 1.5, colStart + colSpacing * 2.5]
-  doc.text('Numeração', cols[0], y, { align: 'center' }); doc.text('Valor Final', cols[1], y, { align: 'center' })
-  doc.text('Data Emissão', cols[2], y, { align: 'center' }); y += 6
-  doc.setFont('helvetica', 'normal')
-  doc.text(numeracao, cols[0], y, { align: 'center' }); doc.text(formatarReais(total), cols[1], y, { align: 'center' })
-  doc.text(dataEmissao, cols[2], y, { align: 'center' })
-  y += 4; doc.line(20, y, w - 20, y)
-
-  // Banner DETALHAMENTO
-  y += 12
-  doc.setFillColor(0, 0, 0); doc.rect(20, y, w - 40, 8, 'F')
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255)
-  doc.text('DETALHAMENTO', 24, y + 5.5); doc.setTextColor(0, 0, 0)
-
-  y += 12
-  const colDesc = 20, colRef = 95, colValor = w - 20
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9)
-  doc.text('Descrição', colDesc, y); doc.text('Referência', colRef, y)
-  doc.text('Valor [R$]', colValor, y, { align: 'right' })
-  y += 3; doc.setLineWidth(0.3); doc.line(20, y, w - 20, y); y += 6
-
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-  comp.forEach(c => {
-    // Quebra descrição longa em múltiplas linhas (máx 35 caracteres)
-    const descLines = doc.splitTextToSize(c.descricao, 70)
-    const refLines = doc.splitTextToSize(c.nomeArquivo || '—', 65)
-    const maxLines = Math.max(descLines.length, refLines.length)
-
-    descLines.forEach((line: string, i: number) => {
-      doc.text(line, colDesc, y + (i * 4))
-    })
-    refLines.forEach((line: string, i: number) => {
-      doc.text(line, colRef, y + (i * 4))
-    })
-    doc.text(formatarReais(c.valor).replace('R$\u00a0', ''), colValor, y, { align: 'right' })
-    y += maxLines * 4 + 3
-  })
-
-  y += 2; doc.setLineWidth(0.5); doc.line(20, y, w - 20, y); y += 7
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10)
-  doc.text('VALOR DA NOTA DE DÉBITO [R$]', colDesc, y)
-  doc.text(formatarReais(total), colValor, y, { align: 'right' })
-  y += 10; doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
-  doc.text(`Valor por extenso: ${valorPorExtenso(total)}`, 20, y)
-
-  // Banner INFORMAÇÕES PARA DEPÓSITO
-  y += 14
-  doc.setFillColor(0, 0, 0); doc.rect(20, y, w - 40, 8, 'F')
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255)
-  doc.text('INFORMAÇÕES PARA DEPÓSITO (pessoa física)', w / 2, y + 5.5, { align: 'center' })
-  doc.setTextColor(0, 0, 0)
-  y += 16; doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
-  doc.text(`Nome: ${sol.titular}`, w / 2, y, { align: 'center' }); y += 6
-  doc.text(`Conta Banco: ${sol.banco}`, w / 2, y, { align: 'center' }); y += 6
-  doc.text(`Agência ${sol.agencia}`, w / 2, y, { align: 'center' }); y += 6
-  doc.text(`Conta Corr. ${sol.conta}`, w / 2, y, { align: 'center' }); y += 6
-  doc.text(`CPF: ${sol.cpf}`, w / 2, y, { align: 'center' }); y += 6
-  if (sol.chavePix) { doc.text(`Chave Pix: ${sol.chavePix}`, w / 2, y, { align: 'center' }); y += 6 }
-
-  doc.save(`nota-debito-${numeracao.replace(/\//g, '-')}.pdf`)
-  return doc
-}
-
-// ========== UPLOAD PARA DRIVE ==========
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      resolve(result.split(',')[1])
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-async function uploadParaDrive(sol: Solicitante, comp: Comprovante[], numeracao: string, pdfDoc: jsPDF) {
-  const data = new Date().toISOString().split('T')[0]
-  const folderName = `${data} - ${sol.nome} - ${numeracao}`
-
-  const pdfBase64 = pdfDoc.output('datauristring').split(',')[1]
-  const files: { name: string; mimeType: string; data: string }[] = [
-    {
-      name: `nota-debito-${numeracao.replace(/\//g, '-')}.pdf`,
-      mimeType: 'application/pdf',
-      data: pdfBase64,
-    },
-  ]
-
-  for (const c of comp) {
-    if (c.arquivo) {
-      const base64 = await fileToBase64(c.arquivo)
-      files.push({
-        name: c.arquivo.name,
-        mimeType: c.arquivo.type,
-        data: base64,
-      })
-    }
-  }
-
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folderName, files }),
-  })
-
-  if (!response.ok) {
-    const err = await response.json()
-    throw new Error(err.error || 'Erro no upload')
-  }
-
-  return response.json()
-}
+import { gerarPDF } from './pdf/gerarPDF'
 
 // ========== APP ==========
 function App() {
@@ -367,3 +211,4 @@ function rmComp(id: string) { setComp(comp.filter(c => c.id !== id)) }
 }
 
 export default App
+
