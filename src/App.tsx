@@ -1,22 +1,7 @@
 import { useState } from 'react'
 import jsPDF from 'jspdf'
-
-// ========== TIPOS ==========
-interface Solicitante {
-  nome: string; cpf: string; rg: string; endereco: string
-  banco: string; agencia: string; conta: string; chavePix: string; titular: string
-}
-interface Comprovante {
-  id: string; descricao: string; centroCusto: string; projeto: string; valor: number; arquivo: File | null; nomeArquivo: string
-}
-
-// ========== DADOS DA DHARMA ==========
-const DHARMA = {
-  razaoSocial: 'DHARMA – AI S.A.',
-  cnpj: '57.963.071/0001-07',
-  endereco: 'Rua Prof. Pereira Reis, nº 76, Loja B, Santo Cristo, CEP 20.220-800',
-  cidade: 'Rio de Janeiro, RJ',
-}
+import type { Solicitante, Comprovante } from './types'
+import { DHARMA } from './constants'
 
 // ========== VALOR POR EXTENSO ==========
 function valorPorExtenso(valor: number): string {
