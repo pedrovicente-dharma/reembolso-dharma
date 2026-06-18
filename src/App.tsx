@@ -28,7 +28,8 @@ function App() {
     setUploadMsg('Gerando PDF...')
     try {
       const pdfDoc = await gerarPDF(sol, comp, total, num)
-      const data = new Date().toISOString().slice(0, 10)
+      const hoje = new Date()
+      const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
       const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
       pdfDoc.save(nomeArquivo)
       setUploadStatus('success')
