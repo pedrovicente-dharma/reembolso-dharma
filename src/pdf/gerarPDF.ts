@@ -98,5 +98,5 @@ export async function gerarPDF(
   doc.text(`CPF: ${sol.cpf}`, w / 2, y, { align: 'center' }); y += 6
   if (sol.chavePix) { doc.text(`Chave Pix: ${sol.chavePix}`, w / 2, y, { align: 'center' }) }
 
-  doc.save(`nota-debito-${numeracao.replace(/\//g, '-')}.pdf`)
+  return doc
 }
