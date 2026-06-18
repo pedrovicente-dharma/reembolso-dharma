@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { Solicitante, Comprovante } from './types'
 import { page, btnGerar } from './styles'
 import { gerarPDF } from './pdf/gerarPDF'
-import { uploadDrive } from './api/uploadDrive'
 import { Header } from './components/Header'
 import { SolicitanteForm } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
@@ -29,14 +28,15 @@ function App() {
     setUploadMsg('Gerando PDF...')
     try {
       const pdfDoc = await gerarPDF(sol, comp, total, num)
-      setUploadMsg('Enviando para o Drive...')
-      await uploadDrive(sol, comp, pdfDoc, num)
+      const data = new Date().toISOString().slice(0, 10)
+      const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
+      pdfDoc.save(nomeArquivo)
       setUploadStatus('success')
-      setUploadMsg('Nota gerada e enviada para o Drive!')
-      setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 5000)
+      setUploadMsg('PDF gerado com sucesso!')
+      setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
     } catch (err: unknown) {
       setUploadStatus('error')
-      setUploadMsg(err instanceof Error ? err.message : 'Erro ao enviar para o Drive')
+      setUploadMsg(err instanceof Error ? err.message : 'Erro ao gerar o PDF')
     }
   }
 
@@ -57,7 +57,7 @@ function App() {
           disabled={!podGerar || carregando}
           style={{ ...btnGerar, opacity: podGerar && !carregando ? 1 : 0.4, cursor: podGerar && !carregando ? 'pointer' : 'not-allowed' }}
         >
-          {carregando ? uploadMsg : 'Gerar nota de débito (PDF + Drive)'}
+          {carregando ? uploadMsg : 'Gerar nota de débito (PDF)'}
         </button>
 
         {uploadStatus === 'success' && (
