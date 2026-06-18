@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, forwardRef, useImperativeHandle } from 'react'
 import type { Solicitante } from '../types'
 import { SolicitanteSchema } from '../schemas'
 import { card, gridStyle, labelStyle, inputStyle, sectionTitle, sectionIcon, subHeader } from '../styles'
 
 type Errors = Partial<Record<keyof Solicitante, string>>
+
+export interface SolicitanteFormHandle {
+  validate: () => boolean
+}
 
 interface Props {
   sol: Solicitante
@@ -12,43 +16,47 @@ interface Props {
   submitLabel?: string
 }
 
-export function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel }: Props) {
-  const [errors, setErrors] = useState<Errors>({})
+export const SolicitanteForm = forwardRef<SolicitanteFormHandle, Props>(
+  function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel }, ref) {
+    const [errors, setErrors] = useState<Errors>({})
 
-  function set(campo: keyof Solicitante, v: string) {
-    onChange({ ...sol, [campo]: v })
-    if (errors[campo]) setErrors(e => ({ ...e, [campo]: undefined }))
-  }
-
-  function validate(): boolean {
-    const result = SolicitanteSchema.safeParse(sol)
-    if (result.success) { setErrors({}); return true }
-    const map: Errors = {}
-    for (const issue of result.error.issues) {
-      const key = issue.path[0] as keyof Solicitante
-      if (!map[key]) map[key] = issue.message
+    function set(campo: keyof Solicitante, v: string) {
+      onChange({ ...sol, [campo]: v })
+      if (errors[campo]) setErrors(e => ({ ...e, [campo]: undefined }))
     }
-    setErrors(map)
-    return false
-  }
 
-  if (submitLabel) {
+    function validate(): boolean {
+      const result = SolicitanteSchema.safeParse(sol)
+      if (result.success) { setErrors({}); return true }
+      const map: Errors = {}
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof Solicitante
+        if (!map[key]) map[key] = issue.message
+      }
+      setErrors(map)
+      return false
+    }
+
+    useImperativeHandle(ref, () => ({ validate }))
+
+    if (submitLabel) {
+      return (
+        <div style={card}>
+          <Fields sol={sol} errors={errors} set={set} />
+          <button onClick={() => validate() && onValidSubmit(sol)} style={{ marginTop: 16 }}>
+            {submitLabel}
+          </button>
+        </div>
+      )
+    }
+
     return (
-      <div style={card}>
-        <Fields sol={sol} errors={errors} set={set} />
-        <button onClick={() => validate() && onValidSubmit(sol)} style={{ marginTop: 16 }}>
-          {submitLabel}
-        </button>
+      <div style={card} data-testid="solicitante-form">
+        <Fields sol={sol} errors={errors} set={set} onBlurValidate={validate} />
       </div>
     )
   }
-
-  return (
-    <div style={card} data-testid="solicitante-form">
-      <Fields sol={sol} errors={errors} set={set} onBlurValidate={validate} />
-    </div>
-  )
-}
+)
 
 function ErrorMsg({ msg }: { msg?: string }) {
   if (!msg) return null
