@@ -190,27 +190,6 @@ export async function gerarPDF(
     y += 7
   })
 
-  // --- ASSINATURAS ---
-  y += 16
-  checkBreak(30)
-  doc.setLineWidth(0.4)
-  const sigW = 72
-  const sig1X = MARGIN + 8
-  const sig2X = w - MARGIN - sigW - 8
-  doc.line(sig1X, y, sig1X + sigW, y)
-  doc.line(sig2X, y, sig2X + sigW, y)
-  y += 5
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Solicitante', sig1X + sigW / 2, y, { align: 'center' })
-  doc.text('Responsável Financeiro', sig2X + sigW / 2, y, { align: 'center' })
-  y += 5
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(100, 100, 100)
-  doc.text(sol.nome || '', sig1X + sigW / 2, y, { align: 'center' })
-  doc.setTextColor(0, 0, 0)
-
   // --- RODAPÉ (todas as páginas) ---
   const totalPages = doc.getNumberOfPages()
   for (let i = 1; i <= totalPages; i++) {
