@@ -1,21 +1,24 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { Solicitante, Comprovante } from './types'
 import { page, btnGerar } from './styles'
 import { gerarPDF } from './pdf/gerarPDF'
 import { Header } from './components/Header'
 import { SolicitanteForm } from './components/SolicitanteForm'
+import type { SolicitanteFormHandle } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
 import { DetalhesNota } from './components/DetalhesNota'
+import { proximoNumeroND, confirmarNumeroND } from './utils/numeracaoND'
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 function App() {
+  const solicitanteRef = useRef<SolicitanteFormHandle>(null)
   const [sol, setSol] = useState<Solicitante>({
     nome: '', cpf: '', rg: '', endereco: '',
     banco: '', agencia: '', conta: '', chavePix: '', titular: '',
   })
   const [comp, setComp] = useState<Comprovante[]>([])
-  const [num, setNum] = useState('ND 001/2025')
+  const [num, setNum] = useState(proximoNumeroND)
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle')
   const [uploadMsg, setUploadMsg] = useState('')
 
@@ -24,6 +27,7 @@ function App() {
   const carregando = uploadStatus === 'loading'
 
   async function handleGerar() {
+    if (!solicitanteRef.current?.validate()) return
     setUploadStatus('loading')
     setUploadMsg('Gerando PDF...')
     try {
@@ -32,6 +36,8 @@ function App() {
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
       const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
       pdfDoc.save(nomeArquivo)
+      confirmarNumeroND()
+      setNum(proximoNumeroND())
       setUploadStatus('success')
       setUploadMsg('PDF gerado com sucesso!')
       setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
@@ -46,6 +52,7 @@ function App() {
       <Header />
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
         <SolicitanteForm
+          ref={solicitanteRef}
           sol={sol}
           onChange={setSol}
           onValidSubmit={handleGerar}
