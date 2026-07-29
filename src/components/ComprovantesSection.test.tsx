@@ -1,6 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ComprovantesSection } from './ComprovantesSection'
+import opcoesDropdown from '../data/opcoesDropdown.json'
+
+const [centroCustoValido] = opcoesDropdown.centrosDeCusto
+const [projetoValido] = opcoesDropdown.projetos
 
 function renderSection(comp = []) {
   const onChange = vi.fn()
@@ -11,14 +15,14 @@ function renderSection(comp = []) {
 function fillAndAdd(overrides: Record<string, string> = {}) {
   const fields = {
     descricao: 'Almoço cliente',
-    centroCusto: 'CC-001',
-    projeto: 'Dharma Labs',
+    centroCusto: centroCustoValido,
+    projeto: projetoValido,
     valor: '50',
     ...overrides,
   }
   if (fields.descricao) fireEvent.change(screen.getByPlaceholderText(/reunião comercial/i), { target: { value: fields.descricao } })
-  if (fields.centroCusto) fireEvent.change(screen.getByPlaceholderText(/CC-001/i), { target: { value: fields.centroCusto } })
-  if (fields.projeto) fireEvent.change(screen.getByPlaceholderText(/Dharma Labs/i), { target: { value: fields.projeto } })
+  if (fields.centroCusto) fireEvent.change(screen.getByLabelText('Centro de custo'), { target: { value: fields.centroCusto } })
+  if (fields.projeto) fireEvent.change(screen.getByLabelText('Projeto'), { target: { value: fields.projeto } })
   if (fields.valor) fireEvent.change(screen.getByPlaceholderText('0,00'), { target: { value: fields.valor } })
   fireEvent.click(screen.getByText('+ Adicionar'))
 }
@@ -55,8 +59,8 @@ describe('ComprovantesSection', () => {
     const [novaLista] = onChange.mock.calls[0]
     expect(novaLista).toHaveLength(1)
     expect(novaLista[0].descricao).toBe('Almoço cliente')
-    expect(novaLista[0].centroCusto).toBe('CC-001')
-    expect(novaLista[0].projeto).toBe('Dharma Labs')
+    expect(novaLista[0].centroCusto).toBe(centroCustoValido)
+    expect(novaLista[0].projeto).toBe(projetoValido)
     expect(novaLista[0].valor).toBe(50)
   })
 })

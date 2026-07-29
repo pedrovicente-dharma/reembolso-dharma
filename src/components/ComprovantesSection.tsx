@@ -3,6 +3,7 @@ import type { Comprovante } from '../types'
 import { ComprovanteInputSchema } from '../schemas'
 import { formatarReais } from '../utils/formatarReais'
 import { card, labelStyle, inputStyle, sectionTitle, sectionIcon, btnPrimary, btnDanger } from '../styles'
+import opcoesDropdown from '../data/opcoesDropdown.json'
 
 type CompErrors = Partial<{ descricao: string; centroCusto: string; projeto: string; valor: string }>
 
@@ -78,22 +79,32 @@ export function ComprovantesSection({ comp, onChange }: Props) {
         </div>
         <div>
           <label style={labelStyle}>Centro de custo *</label>
-          <input
-            type="text" value={cc}
+          <select
+            aria-label="Centro de custo"
+            value={cc}
             onChange={e => { setCc(e.target.value); clearError('centroCusto') }}
-            placeholder="Ex: CC-001"
             style={{ ...inputStyle, borderColor: errors.centroCusto ? '#dc2626' : undefined }}
-          />
+          >
+            <option value="" disabled>Selecione...</option>
+            {opcoesDropdown.centrosDeCusto.map(opcao => (
+              <option key={opcao} value={opcao}>{opcao}</option>
+            ))}
+          </select>
           {errors.centroCusto && <p style={{ color: '#dc2626', fontSize: 11, margin: '4px 0 0' }}>{errors.centroCusto}</p>}
         </div>
         <div>
           <label style={labelStyle}>Projeto *</label>
-          <input
-            type="text" value={proj}
+          <select
+            aria-label="Projeto"
+            value={proj}
             onChange={e => { setProj(e.target.value); clearError('projeto') }}
-            placeholder="Ex: Dharma Labs"
             style={{ ...inputStyle, borderColor: errors.projeto ? '#dc2626' : undefined }}
-          />
+          >
+            <option value="" disabled>Selecione...</option>
+            {opcoesDropdown.projetos.map(opcao => (
+              <option key={opcao} value={opcao}>{opcao}</option>
+            ))}
+          </select>
           {errors.projeto && <p style={{ color: '#dc2626', fontSize: 11, margin: '4px 0 0' }}>{errors.projeto}</p>}
         </div>
       </div>
