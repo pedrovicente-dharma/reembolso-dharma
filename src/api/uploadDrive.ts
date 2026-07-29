@@ -35,10 +35,22 @@ export async function uploadDrive(
     }
   }
 
+  const valorTotal = comp.reduce((s, c) => s + c.valor, 0)
+  const centroCusto = [...new Set(comp.map((c) => c.centroCusto))].join(', ')
+  const projeto = [...new Set(comp.map((c) => c.projeto))].join(', ')
+
   const res = await fetch('/api/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folderName, files }),
+    body: JSON.stringify({
+      folderName,
+      files,
+      solicitante: sol.nome,
+      numeracao: num,
+      valorTotal,
+      centroCusto,
+      projeto,
+    }),
   })
 
   if (!res.ok) {

@@ -9,13 +9,58 @@ export const config = {
   },
 }
 
+async function notifySlack({ solicitante, numeracao, valorTotal, centroCusto, projeto, folderId }) {
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL?.trim()
+  if (!webhookUrl) return
+
+  const valorFormatado = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(valorTotal || 0)
+  const driveLink = `https://drive.google.com/drive/folders/${folderId}`
+
+  const payload = {
+    text: `Novo reembolso enviado ao Drive: ${solicitante || '—'} — ${valorFormatado}`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: [
+            '*✅ Reembolso enviado ao Google Drive*',
+            `*Solicitante:* ${solicitante || '—'}`,
+            `*Numeração:* ${numeracao || '—'}`,
+            `*Valor total:* ${valorFormatado}`,
+            `*Centro de custo:* ${centroCusto || '—'}`,
+            `*Projeto:* ${projeto || '—'}`,
+            `*Pasta no Drive:* <${driveLink}|Abrir pasta>`,
+          ].join('\n'),
+        },
+      },
+    ],
+  }
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      console.error('Erro ao enviar alerta ao Slack:', res.status, await res.text())
+    }
+  } catch (error) {
+    console.error('Erro ao enviar alerta ao Slack:', error)
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' })
   }
 
   try {
-    const { folderName, files } = req.body
+    const { folderName, files, solicitante, numeracao, valorTotal, centroCusto, projeto } = req.body
 
     if (!folderName || !files || files.length === 0) {
       return res.status(400).json({ error: 'Dados inválidos' })
@@ -57,6 +102,8 @@ export default async function handler(req, res) {
         },
       })
     }
+
+    await notifySlack({ solicitante, numeracao, valorTotal, centroCusto, projeto, folderId: newFolderId })
 
     return res.status(200).json({ success: true, folderId: newFolderId })
   } catch (error) {

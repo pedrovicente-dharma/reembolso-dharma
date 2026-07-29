@@ -63,4 +63,19 @@ describe('uploadDrive', () => {
     await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
     expect(capturedBody.folderName).toMatch(/^\d{4}-\d{2}-\d{2} - Ana Silva - ND 001\/2025$/)
   })
+
+  it('payload inclui dados para o alerta do Slack (solicitante, numeração, valor, CC e projeto)', async () => {
+    let capturedBody: any
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((_url, opts) => {
+      capturedBody = JSON.parse(opts.body)
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ folderId: 'x' }) })
+    }))
+
+    await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
+    expect(capturedBody.solicitante).toBe('Ana Silva')
+    expect(capturedBody.numeracao).toBe('ND 001/2025')
+    expect(capturedBody.valorTotal).toBe(50)
+    expect(capturedBody.centroCusto).toBe('CC-01')
+    expect(capturedBody.projeto).toBe('Lab')
+  })
 })
