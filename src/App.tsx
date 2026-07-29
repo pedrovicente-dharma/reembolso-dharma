@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Solicitante, Comprovante } from './types'
 import { page, btnGerar } from './styles'
 import { gerarPDF } from './pdf/gerarPDF'
+import { uploadDrive } from './api/uploadDrive'
 import { Header } from './components/Header'
 import { SolicitanteForm } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
@@ -32,8 +33,12 @@ function App() {
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
       const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
       pdfDoc.save(nomeArquivo)
+
+      setUploadMsg('Enviando para o Drive...')
+      await uploadDrive(sol, comp, pdfDoc, num)
+
       setUploadStatus('success')
-      setUploadMsg('PDF gerado com sucesso!')
+      setUploadMsg('PDF gerado e enviado ao Drive com sucesso!')
       setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
     } catch (err: unknown) {
       setUploadStatus('error')
