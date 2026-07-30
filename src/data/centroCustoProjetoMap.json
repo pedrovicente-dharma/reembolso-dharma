@@ -1,0 +1,100 @@
+{
+  "AI Lab": [
+    "BID - Reforma Tributária"
+  ],
+  "AI Services": [
+    "AGU - Depósitos Judiciais",
+    "Boston Scientific - Evidence Ald",
+    "Descomplica - SLM",
+    "LORINVEST - Vibe Coding",
+    "NORSUL - Cérebro de Manutenção",
+    "NORSUL - Praticagem",
+    "NORSUL - Squad IA",
+    "Sileto - Onda 1",
+    "Sileto - Onda 2",
+    "YDUQS - Portais",
+    "YDUQS - TACIA"
+  ],
+  "Administrativo": [
+    "ADM - Administrativo & Facilities",
+    "ADM - Financeiro",
+    "ADM - Jurídico e Compliance",
+    "ADM - Operações",
+    "ADM - Outros Impostos",
+    "ADM - Tecnologia e Comunicações"
+  ],
+  "BP": [
+    "BP - Patrimoniais"
+  ],
+  "Capacidade Não Alocada": [
+    "Afastamento médico",
+    "Recesso"
+  ],
+  "Chat Iplan": [
+    "Chat Iplan - MVP"
+  ],
+  "Comercial": [
+    "COM - GTM US",
+    "COM - Parcerias",
+    "COM - Pré-Venda",
+    "COM - Vendas"
+  ],
+  "Corretor de Redação": [
+    "Descomplica"
+  ],
+  "Diretoria": [
+    "DIR - Fundadores"
+  ],
+  "Jurídico": [
+    "Jur - Produto Jurídico",
+    "Jur - Simetrio MVP"
+  ],
+  "Marketing Growth": [
+    "MKG - Comunicação",
+    "MKG - Eventos",
+    "MKG - Prospecção"
+  ],
+  "P&D Desenvolvimento": [
+    "P&D Desenvolvimento - Assets Internos",
+    "P&D Desenvolvimento - Cobol2Java",
+    "P&D Desenvolvimento - Degravador",
+    "P&D Desenvolvimento - Legal",
+    "P&D Desenvolvimento - OCR"
+  ],
+  "P&D Pesquisa": [
+    "P&D Pesquisa - Hipóteses Técnicas"
+  ],
+  "Produto Degravador": [
+    "Produto Degravador - STJ"
+  ],
+  "Produto Manutenção": [
+    "Prod Manut - Klabin",
+    "Prod Manut - MVP",
+    "Prod Manut - V1",
+    "Prod Manut - V2"
+  ],
+  "Produto Manutenção Navio": [
+    "Manut Navio - Norsul"
+  ],
+  "Produto Maquinaria": [
+    "Produto Maquinaria - Dharma-AI Lib",
+    "Produto Maquinaria - Plataforma",
+    "Produto Maquinaria - Samsara"
+  ],
+  "Produto OCR": [
+    "Prod OCR - CIPA",
+    "Prod OCR - MVP",
+    "Prod OCR - Simetrio",
+    "Prod OCR - Sydle MPSE",
+    "Prod OCR - V1",
+    "Prod OCR - V2"
+  ],
+  "RH": [
+    "RH - DP",
+    "RH - Estratégico",
+    "RH - Eventos Internos"
+  ],
+  "Vibe Coding Interno": [
+    "Projetos Internos - Vibe Coding Interno"
+  ]
+}

@@ -3,7 +3,10 @@ import type { Comprovante } from '../types'
 import { ComprovanteInputSchema } from '../schemas'
 import { formatarReais } from '../utils/formatarReais'
 import { card, labelStyle, inputStyle, sectionTitle, sectionIcon, btnPrimary, btnDanger } from '../styles'
-import opcoesDropdown from '../data/opcoesDropdown.json'
+import centroCustoProjetoMapRaw from '../data/centroCustoProjetoMap.json'
+
+const centroCustoProjetoMap = centroCustoProjetoMapRaw as Record<string, string[]>
+const centrosDeCusto = Object.keys(centroCustoProjetoMap)
 
 type CompErrors = Partial<{ descricao: string; centroCusto: string; projeto: string; valor: string }>
 
@@ -82,11 +85,11 @@ export function ComprovantesSection({ comp, onChange }: Props) {
           <select
             aria-label="Centro de custo"
             value={cc}
-            onChange={e => { setCc(e.target.value); clearError('centroCusto') }}
+            onChange={e => { setCc(e.target.value); setProj(''); clearError('centroCusto') }}
             style={{ ...inputStyle, borderColor: errors.centroCusto ? '#dc2626' : undefined }}
           >
             <option value="" disabled>Selecione...</option>
-            {opcoesDropdown.centrosDeCusto.map(opcao => (
+            {centrosDeCusto.map(opcao => (
               <option key={opcao} value={opcao}>{opcao}</option>
             ))}
           </select>
@@ -97,11 +100,12 @@ export function ComprovantesSection({ comp, onChange }: Props) {
           <select
             aria-label="Projeto"
             value={proj}
+            disabled={!cc}
             onChange={e => { setProj(e.target.value); clearError('projeto') }}
             style={{ ...inputStyle, borderColor: errors.projeto ? '#dc2626' : undefined }}
           >
-            <option value="" disabled>Selecione...</option>
-            {opcoesDropdown.projetos.map(opcao => (
+            <option value="" disabled>{cc ? 'Selecione...' : 'Selecione um Centro de Custo primeiro'}</option>
+            {(centroCustoProjetoMap[cc] || []).map(opcao => (
               <option key={opcao} value={opcao}>{opcao}</option>
             ))}
           </select>

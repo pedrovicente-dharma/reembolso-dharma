@@ -1,10 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ComprovantesSection } from './ComprovantesSection'
-import opcoesDropdown from '../data/opcoesDropdown.json'
+import centroCustoProjetoMap from '../data/centroCustoProjetoMap.json'
 
-const [centroCustoValido] = opcoesDropdown.centrosDeCusto
-const [projetoValido] = opcoesDropdown.projetos
+const [centroCustoValido] = Object.keys(centroCustoProjetoMap)
+const [projetoValido] = (centroCustoProjetoMap as Record<string, string[]>)[centroCustoValido]
 
 function renderSection(comp = []) {
   const onChange = vi.fn()
@@ -62,5 +62,30 @@ describe('ComprovantesSection', () => {
     expect(novaLista[0].centroCusto).toBe(centroCustoValido)
     expect(novaLista[0].projeto).toBe(projetoValido)
     expect(novaLista[0].valor).toBe(50)
+  })
+
+  it('desabilita Projeto até um Centro de custo ser escolhido, e filtra as opções por centro', () => {
+    renderSection()
+    const selectProjeto = screen.getByLabelText('Projeto') as HTMLSelectElement
+    expect(selectProjeto).toBeDisabled()
+
+    fireEvent.change(screen.getByLabelText('Centro de custo'), { target: { value: centroCustoValido } })
+    expect(selectProjeto).not.toBeDisabled()
+    const opcoesEsperadas = (centroCustoProjetoMap as Record<string, string[]>)[centroCustoValido]
+    expect(screen.getAllByRole('option', { name: opcoesEsperadas[0] })[0]).toBeInTheDocument()
+  })
+
+  it('reseta o Projeto selecionado ao trocar o Centro de custo', () => {
+    renderSection()
+    const [primeiroCC, segundoCC] = Object.keys(centroCustoProjetoMap)
+    const selectCC = screen.getByLabelText('Centro de custo') as HTMLSelectElement
+    const selectProjeto = screen.getByLabelText('Projeto') as HTMLSelectElement
+
+    fireEvent.change(selectCC, { target: { value: primeiroCC } })
+    fireEvent.change(selectProjeto, { target: { value: projetoValido } })
+    expect(selectProjeto.value).toBe(projetoValido)
+
+    fireEvent.change(selectCC, { target: { value: segundoCC } })
+    expect(selectProjeto.value).toBe('')
   })
 })

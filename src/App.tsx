@@ -3,10 +3,10 @@ import type { Solicitante, Comprovante } from './types'
 import { page, btnGerar } from './styles'
 import { gerarPDF } from './pdf/gerarPDF'
 import { uploadDrive } from './api/uploadDrive'
+import { gerarNumeracao } from './utils/gerarNumeracao'
 import { Header } from './components/Header'
 import { SolicitanteForm } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
-import { DetalhesNota } from './components/DetalhesNota'
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -16,7 +16,6 @@ function App() {
     banco: '', agencia: '', conta: '', chavePix: '', titular: '',
   })
   const [comp, setComp] = useState<Comprovante[]>([])
-  const [num, setNum] = useState('ND 001/2025')
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle')
   const [uploadMsg, setUploadMsg] = useState('')
 
@@ -28,14 +27,15 @@ function App() {
     setUploadStatus('loading')
     setUploadMsg('Gerando PDF...')
     try {
-      const pdfDoc = await gerarPDF(sol, comp, total, num)
       const hoje = new Date()
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
+      const numeracao = gerarNumeracao(comp, data)
+      const pdfDoc = await gerarPDF(sol, comp, total, numeracao)
       const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
       pdfDoc.save(nomeArquivo)
 
       setUploadMsg('Enviando para o Drive...')
-      await uploadDrive(sol, comp, pdfDoc, num)
+      await uploadDrive(sol, comp, pdfDoc, numeracao)
 
       setUploadStatus('success')
       setUploadMsg('PDF gerado e enviado ao Drive com sucesso!')
@@ -56,7 +56,6 @@ function App() {
           onValidSubmit={handleGerar}
         />
         <ComprovantesSection comp={comp} onChange={setComp} />
-        <DetalhesNota num={num} total={total} onChange={setNum} />
 
         <button
           onClick={handleGerar}
