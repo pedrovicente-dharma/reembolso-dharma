@@ -1,6 +1,9 @@
 import type jsPDF from 'jspdf'
 import type { Solicitante, Comprovante } from '../types'
 
+const MAX_DIMENSAO = 1600
+const QUALIDADE_JPEG = 0.8
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -8,6 +11,49 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+function loadImageElement(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Não foi possível ler a imagem do comprovante'))
+    }
+    img.src = url
+  })
+}
+
+export async function compressImage(file: File): Promise<File> {
+  if (!file.type.startsWith('image/')) return file
+
+  const img = await loadImageElement(file)
+  const maiorLado = Math.max(img.width, img.height)
+  if (maiorLado <= MAX_DIMENSAO) return file
+
+  const escala = MAX_DIMENSAO / maiorLado
+  const largura = Math.round(img.width * escala)
+  const altura = Math.round(img.height * escala)
+
+  const canvas = document.createElement('canvas')
+  canvas.width = largura
+  canvas.height = altura
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return file
+  ctx.drawImage(img, 0, 0, largura, altura)
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/jpeg', QUALIDADE_JPEG),
+  )
+  if (!blob) return file
+
+  const nome = file.name.replace(/\.[^.]+$/, '') + '.jpg'
+  return new File([blob], nome, { type: 'image/jpeg' })
 }
 
 export async function uploadDrive(
@@ -30,8 +76,9 @@ export async function uploadDrive(
 
   for (const c of comp) {
     if (c.arquivo) {
-      const data = await fileToBase64(c.arquivo)
-      files.push({ name: c.arquivo.name, mimeType: c.arquivo.type, data })
+      const arquivoComprimido = await compressImage(c.arquivo)
+      const data = await fileToBase64(arquivoComprimido)
+      files.push({ name: arquivoComprimido.name, mimeType: arquivoComprimido.type, data })
     }
   }
 
@@ -54,8 +101,23 @@ export async function uploadDrive(
   })
 
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error || 'Erro no upload para o Drive')
+    const bodyText = await res.text()
+
+    let mensagemServidor: string | undefined
+    try {
+      mensagemServidor = JSON.parse(bodyText).error
+    } catch {
+      // resposta não é JSON (ex: erro de infraestrutura) — tratado abaixo
+    }
+
+    if (res.status === 413 || bodyText.includes('Request Entity Too Large')) {
+      throw new Error(
+        'Os arquivos anexados são muito grandes para enviar, mesmo após compressão. ' +
+        'Tente reduzir o número de comprovantes por envio ou usar arquivos menores.',
+      )
+    }
+
+    throw new Error(mensagemServidor || 'Erro no upload para o Drive')
   }
 
   return res.json()
