@@ -31,8 +31,6 @@ function App() {
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
       const numeracao = gerarNumeracao(comp, data)
       const pdfDoc = await gerarPDF(sol, comp, total, numeracao)
-      const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
-      pdfDoc.save(nomeArquivo)
 
       setUploadMsg('Enviando para o Drive...')
       await uploadDrive(sol, comp, pdfDoc, numeracao)
