@@ -68,7 +68,7 @@ export async function uploadDrive(
   const pdfBase64 = pdfDoc.output('datauristring').split(',')[1]
   const files: { name: string; mimeType: string; data: string }[] = [
     {
-      name: `nota-debito-${num.replace(/\//g, '-')}.pdf`,
+      name: `${num.replace(/\//g, '-')}.pdf`,
       mimeType: 'application/pdf',
       data: pdfBase64,
     },
