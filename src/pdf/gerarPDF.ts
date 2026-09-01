@@ -82,26 +82,29 @@ export async function gerarPDF(
 
   // --- NUMERAÇÃO / VALOR / DATA ---
   y += 8
+  const dataEmissao = new Date().toLocaleDateString('pt-BR')
+  const numeracaoLines = doc.splitTextToSize(numeracao, w - MARGIN * 2) as string[]
+  checkBreak(27 + numeracaoLines.length * LINE_H)
   doc.setLineWidth(0.3)
   doc.line(MARGIN, y, w - MARGIN, y)
   y += 7
-  const dataEmissao = new Date().toLocaleDateString('pt-BR')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  const colSpacing = (w - MARGIN * 2) / 3
-  const cols = [
-    MARGIN + colSpacing * 0.5,
-    MARGIN + colSpacing * 1.5,
-    MARGIN + colSpacing * 2.5,
-  ]
-  doc.text('Numeração', cols[0], y, { align: 'center' })
-  doc.text('Valor Final', cols[1], y, { align: 'center' })
-  doc.text('Data Emissão', cols[2], y, { align: 'center' })
+  doc.text('Numeração', MARGIN, y)
   y += 6
   doc.setFont('helvetica', 'normal')
-  doc.text(numeracao, cols[0], y, { align: 'center' })
-  doc.text(formatarReais(total), cols[1], y, { align: 'center' })
-  doc.text(dataEmissao, cols[2], y, { align: 'center' })
+  doc.text(numeracaoLines, MARGIN, y)
+  y += numeracaoLines.length * LINE_H
+  y += 4
+  const colValorFinal = MARGIN
+  const colDataEmissao = MARGIN + (w - MARGIN * 2) / 2
+  doc.setFont('helvetica', 'bold')
+  doc.text('Valor Final', colValorFinal, y)
+  doc.text('Data Emissão', colDataEmissao, y)
+  y += 6
+  doc.setFont('helvetica', 'normal')
+  doc.text(formatarReais(total), colValorFinal, y)
+  doc.text(dataEmissao, colDataEmissao, y)
   y += 4
   doc.line(MARGIN, y, w - MARGIN, y)
 
@@ -110,11 +113,12 @@ export async function gerarPDF(
   banner('DETALHAMENTO')
 
   const colDesc = MARGIN
-  const colCC = 82
-  const colProj = 130
+  const colCC = 76
+  const colProj = 118
   const colValor = w - MARGIN
   const descMaxW = colCC - colDesc - 4
-  const projMaxW = colValor - colProj - 6
+  const ccMaxW = colProj - colCC - 4
+  const projMaxW = colValor - colProj - 26
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
@@ -132,8 +136,9 @@ export async function gerarPDF(
 
   comp.forEach((c, idx) => {
     const descLines = doc.splitTextToSize(c.descricao, descMaxW) as string[]
+    const ccLines = doc.splitTextToSize(c.centroCusto, ccMaxW) as string[]
     const projLines = doc.splitTextToSize(c.projeto, projMaxW) as string[]
-    const rowLines = Math.max(descLines.length, projLines.length, 1)
+    const rowLines = Math.max(descLines.length, ccLines.length, projLines.length, 1)
     const rowH = rowLines * LINE_H + 3
 
     checkBreak(rowH + 2)
@@ -145,7 +150,7 @@ export async function gerarPDF(
 
     doc.setTextColor(0, 0, 0)
     doc.text(descLines, colDesc, y)
-    doc.text(c.centroCusto, colCC, y)
+    doc.text(ccLines, colCC, y)
     doc.text(projLines, colProj, y)
     doc.text(formatarReais(c.valor).replace('R$ ', ''), colValor, y, { align: 'right' })
     y += rowH
