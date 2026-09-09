@@ -1,8 +1,6 @@
 export interface Solicitante {
   nome: string
   cpf: string
-  rg: string
-  endereco: string
   banco: string
   agencia: string
   conta: string

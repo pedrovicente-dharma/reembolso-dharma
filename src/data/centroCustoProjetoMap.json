@@ -28,6 +28,8 @@
   ],
   "Capacidade Não Alocada": [
     "Afastamento médico",
+    "Licença Casamento",
+    "Licença Paternidade/Maternidade",
     "Recesso"
   ],
   "Chat Iplan": [
@@ -35,12 +37,15 @@
   ],
   "Comercial": [
     "COM - GTM US",
+    "COM - Invest. POC AI Lab",
+    "COM - Invest. POC OCR",
     "COM - Parcerias",
     "COM - Pré-Venda",
     "COM - Vendas"
   ],
   "Corretor de Redação": [
-    "Descomplica"
+    "Corretor de Redação - Descomplica",
+    "Corretor de Redação - Workfuse"
   ],
   "Diretoria": [
     "DIR - Fundadores"
@@ -83,18 +88,20 @@
   ],
   "Produto OCR": [
     "Prod OCR - CIPA",
+    "Prod OCR - Letrus",
+    "Prod OCR - MPGO",
     "Prod OCR - MVP",
     "Prod OCR - Simetrio",
     "Prod OCR - Sydle MPSE",
     "Prod OCR - V1",
     "Prod OCR - V2"
   ],
+  "Projetos Internos": [
+    "Projetos Internos - Harness"
+  ],
   "RH": [
     "RH - DP",
     "RH - Estratégico",
     "RH - Eventos Internos"
-  ],
-  "Vibe Coding Interno": [
-    "Projetos Internos - Vibe Coding Interno"
   ]
 }

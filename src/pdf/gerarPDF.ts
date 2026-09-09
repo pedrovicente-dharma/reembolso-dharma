@@ -73,12 +73,6 @@ export async function gerarPDF(
   doc.text(`Nome: ${sol.nome}`, MARGIN, y)
   y += 5
   doc.text(`CPF: ${sol.cpf}`, MARGIN, y)
-  if (sol.rg) doc.text(`RG: ${sol.rg}`, 110, y)
-  y += 5
-  if (sol.endereco) {
-    doc.text(`Endereço: ${sol.endereco}`, MARGIN, y)
-    y += 5
-  }
 
   // --- NUMERAÇÃO / VALOR / DATA ---
   y += 8

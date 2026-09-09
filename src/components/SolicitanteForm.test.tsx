@@ -4,12 +4,12 @@ import { SolicitanteForm } from './SolicitanteForm'
 import type { Solicitante } from '../types'
 
 const solVazio: Solicitante = {
-  nome: '', cpf: '', rg: '', endereco: '',
+  nome: '', cpf: '',
   banco: '', agencia: '', conta: '', chavePix: '', titular: '',
 }
 
 const solValido: Solicitante = {
-  nome: 'Ana Silva', cpf: '123.456.789-00', rg: '', endereco: '',
+  nome: 'Ana Silva', cpf: '123.456.789-00',
   banco: 'Nubank', agencia: '0001', conta: '12345-6', chavePix: '', titular: 'Ana Silva',
 }
 

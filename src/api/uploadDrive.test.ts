@@ -3,7 +3,7 @@ import { uploadDrive, compressImage } from './uploadDrive'
 import type { Solicitante, Comprovante } from '../types'
 
 const sol: Solicitante = {
-  nome: 'Ana Silva', cpf: '123.456.789-00', rg: '', endereco: '',
+  nome: 'Ana Silva', cpf: '123.456.789-00',
   banco: 'Nubank', agencia: '0001', conta: '12345-6', chavePix: '', titular: 'Ana Silva',
 }
 

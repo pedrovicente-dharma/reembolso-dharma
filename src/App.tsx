@@ -12,7 +12,7 @@ type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 function App() {
   const [sol, setSol] = useState<Solicitante>({
-    nome: '', cpf: '', rg: '', endereco: '',
+    nome: '', cpf: '',
     banco: '', agencia: '', conta: '', chavePix: '', titular: '',
   })
   const [comp, setComp] = useState<Comprovante[]>([])

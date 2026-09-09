@@ -90,14 +90,6 @@ function Fields({ sol, errors, set }: FieldsProps) {
           />
           <ErrorMsg msg={errors.cpf} />
         </div>
-        <div>
-          <label style={labelStyle}>RG</label>
-          <input type="text" value={sol.rg} onChange={e => set('rg', e.target.value)} placeholder="00.000.000-0" style={inputStyle} />
-        </div>
-        <div style={{ gridColumn: '1 / -1' }}>
-          <label style={labelStyle}>Endereço</label>
-          <input type="text" value={sol.endereco} onChange={e => set('endereco', e.target.value)} placeholder="Rua, número, bairro, cidade - UF" style={inputStyle} />
-        </div>
       </div>
       <h3 style={subHeader}>Dados bancários</h3>
       <div style={gridStyle}>

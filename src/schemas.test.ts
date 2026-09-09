@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { SolicitanteSchema, ComprovanteInputSchema } from './schemas'
 
 const solicitanteValido = {
-  nome: 'Ana Silva', cpf: '123.456.789-00', rg: '', endereco: '',
+  nome: 'Ana Silva', cpf: '123.456.789-00',
   banco: 'Nubank', agencia: '0001', conta: '12345-6', chavePix: '', titular: 'Ana Silva',
 }
 
@@ -40,10 +40,6 @@ describe('SolicitanteSchema', () => {
     expect(JSON.stringify(r)).toContain('Nome do titular obrigatório')
   })
 
-  it('aceita rg e endereco opcionais ausentes', () => {
-    const { rg, endereco, ...semOpcionais } = solicitanteValido
-    expect(SolicitanteSchema.safeParse(semOpcionais).success).toBe(true)
-  })
 })
 
 describe('ComprovanteInputSchema', () => {
