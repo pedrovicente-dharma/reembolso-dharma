@@ -13,6 +13,7 @@ type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 function App() {
   const solicitanteRef = useRef<SolicitanteFormHandle>(null)
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [sol, setSol] = useState<Solicitante>({
     nome: '', cpf: '', rg: '', endereco: '',
     banco: '', agencia: '', conta: '', chavePix: '', titular: '',
@@ -28,19 +29,21 @@ function App() {
 
   async function handleGerar() {
     if (!solicitanteRef.current?.validate()) return
+    if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current)
     setUploadStatus('loading')
     setUploadMsg('Gerando PDF...')
     try {
       const pdfDoc = await gerarPDF(sol, comp, total, num)
       const hoje = new Date()
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
-      const nomeArquivo = `ND - ${data} - ${sol.nome || 'nota'}.pdf`
+      const nomeSanitizado = (sol.nome || 'nota').replace(/[\\/:*?"<>|]/g, '')
+      const nomeArquivo = `ND - ${data} - ${nomeSanitizado}.pdf`
       pdfDoc.save(nomeArquivo)
-      confirmarNumeroND()
+      confirmarNumeroND(num)
       setNum(proximoNumeroND())
       setUploadStatus('success')
       setUploadMsg('PDF gerado com sucesso!')
-      setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
+      resetTimeoutRef.current = setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
     } catch (err: unknown) {
       setUploadStatus('error')
       setUploadMsg(err instanceof Error ? err.message : 'Erro ao gerar o PDF')
@@ -55,12 +58,12 @@ function App() {
           ref={solicitanteRef}
           sol={sol}
           onChange={setSol}
-          onValidSubmit={handleGerar}
         />
         <ComprovantesSection comp={comp} onChange={setComp} />
         <DetalhesNota num={num} total={total} onChange={setNum} />
 
         <button
+          type="button"
           onClick={handleGerar}
           disabled={!podGerar || carregando}
           style={{ ...btnGerar, opacity: podGerar && !carregando ? 1 : 0.4, cursor: podGerar && !carregando ? 'pointer' : 'not-allowed' }}

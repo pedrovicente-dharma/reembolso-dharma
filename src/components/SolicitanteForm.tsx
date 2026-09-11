@@ -12,7 +12,7 @@ export interface SolicitanteFormHandle {
 interface Props {
   sol: Solicitante
   onChange: (sol: Solicitante) => void
-  onValidSubmit: (sol: Solicitante) => void
+  onValidSubmit?: (sol: Solicitante) => void
   submitLabel?: string
 }
 
@@ -43,7 +43,7 @@ export const SolicitanteForm = forwardRef<SolicitanteFormHandle, Props>(
       return (
         <div style={card}>
           <Fields sol={sol} errors={errors} set={set} />
-          <button onClick={() => validate() && onValidSubmit(sol)} style={{ marginTop: 16 }}>
+          <button onClick={() => validate() && onValidSubmit?.(sol)} style={{ marginTop: 16 }}>
             {submitLabel}
           </button>
         </div>
