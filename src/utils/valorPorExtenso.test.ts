@@ -33,4 +33,14 @@ describe('valorPorExtenso', () => {
   it('centavo único', () => {
     expect(valorPorExtenso(0.01)).toBe('Um centavo')
   })
+
+  it('soma de valores decimais com erro de ponto flutuante não gera "cem centavos"', () => {
+    const total = [25.04, 61.97, 60.38, 12.56, 16.95, 31.10].reduce((s, v) => s + v, 0)
+    expect(total).not.toBe(208) // confirma que o erro de ponto flutuante está presente no teste
+    expect(valorPorExtenso(total)).toBe('Duzentos e oito reais')
+  })
+
+  it('não perde centavo por erro de ponto flutuante', () => {
+    expect(valorPorExtenso(2.005)).toBe('Dois reais e um centavo')
+  })
 })

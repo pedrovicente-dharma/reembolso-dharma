@@ -1,5 +1,6 @@
 export function valorPorExtenso(valor: number): string {
-  if (valor === 0) return 'zero reais'
+  const totalCentavos = Math.round(valor * 100)
+  if (totalCentavos === 0) return 'zero reais'
   const un = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove',
     'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove']
   const dez = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa']
@@ -14,8 +15,8 @@ export function valorPorExtenso(valor: number): string {
     else if (d === 1 || u > 0) { r += (r ? ' e ' : '') + un[d * 10 + u] }
     return r
   }
-  const inteiro = Math.floor(valor)
-  const centavos = Math.round((valor - inteiro) * 100)
+  const inteiro = Math.floor(totalCentavos / 100)
+  const centavos = totalCentavos % 100
   let r = ''
   if (inteiro > 0) {
     const milhares = Math.floor(inteiro / 1000), resto = inteiro % 1000
