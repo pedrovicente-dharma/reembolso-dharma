@@ -1,3 +1,4 @@
+// Dados fixos da empresa impressos no cabeçalho da nota de débito
 export const DHARMA = {
   razaoSocial: 'DHARMA – AI S.A.',
   cnpj: '57.963.071/0001-07',

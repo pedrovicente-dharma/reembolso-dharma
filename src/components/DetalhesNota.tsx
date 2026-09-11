@@ -7,6 +7,9 @@ interface Props {
   onChange: (num: string) => void
 }
 
+// O campo de numeração é editável de propósito: o usuário pode ajustar o número da ND
+// manualmente antes de gerar o PDF (ex: para corrigir uma sequência). O valor por extenso
+// é só leitura, calculado a partir do total dos comprovantes.
 export function DetalhesNota({ num, total, onChange }: Props) {
   return (
     <div style={card}>

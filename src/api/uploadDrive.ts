@@ -1,6 +1,10 @@
 import type jsPDF from 'jspdf'
 import type { Solicitante, Comprovante } from '../types'
 
+// NOTA: o fluxo atual do App gera o PDF e faz o download local, sem chamar uploadDrive
+// (ver commit "switch to local download, defer Google Drive upload"). Este módulo fica
+// pronto para quando o upload para o Drive for reativado; até lá, só é usado nos testes.
+
 const MAX_DIMENSAO = 1600
 const QUALIDADE_JPEG = 0.8
 
@@ -29,6 +33,9 @@ function loadImageElement(file: File): Promise<HTMLImageElement> {
   })
 }
 
+// Reduz imagens grandes antes do upload, para não estourar o limite de tamanho do payload
+// da API (ver tratamento de erro 413 em uploadDrive). Arquivos não-imagem (ex: PDF) e imagens
+// já pequenas passam direto, sem recompressão.
 export async function compressImage(file: File): Promise<File> {
   if (!file.type.startsWith('image/')) return file
 
@@ -56,6 +63,8 @@ export async function compressImage(file: File): Promise<File> {
   return new File([blob], nome, { type: 'image/jpeg' })
 }
 
+// Envia o PDF gerado e os comprovantes anexados (como base64) para a rota /api/upload,
+// que cria uma pasta no Google Drive e salva os arquivos nela.
 export async function uploadDrive(
   sol: Solicitante,
   comp: Comprovante[],

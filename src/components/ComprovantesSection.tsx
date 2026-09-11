@@ -7,10 +7,12 @@ import { card, labelStyle, inputStyle, sectionTitle, sectionIcon, btnPrimary, bt
 type CompErrors = Partial<{ descricao: string; centroCusto: string; projeto: string; valor: string }>
 
 interface Props {
-  comp: Comprovante[]
+  comp: Comprovante[] // lista já adicionada (fica no App, é o que vira o PDF)
   onChange: (comp: Comprovante[]) => void
 }
 
+// Mantém o formulário de "novo comprovante" (rascunho ainda não adicionado à lista)
+// como estado próprio e local, separado da lista `comp` recebida via props.
 export function ComprovantesSection({ comp, onChange }: Props) {
   const [desc, setDesc] = useState('')
   const [cc, setCc] = useState('')
@@ -50,6 +52,7 @@ export function ComprovantesSection({ comp, onChange }: Props) {
       nomeArquivo: arq?.name || '',
     }])
     setDesc(''); setCc(''); setProj(''); setVal(''); setArq(null)
+    // input[type=file] não aceita valor controlado por React; precisa ser limpo direto no DOM
     const fi = document.getElementById('fi') as HTMLInputElement
     if (fi) fi.value = ''
   }

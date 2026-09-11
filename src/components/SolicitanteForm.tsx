@@ -5,6 +5,8 @@ import { card, gridStyle, labelStyle, inputStyle, sectionTitle, sectionIcon, sub
 
 type Errors = Partial<Record<keyof Solicitante, string>>
 
+// Exposto via ref para que o componente pai (App) possa disparar a validação
+// antes de gerar o PDF, sem precisar duplicar as regras de validação lá.
 export interface SolicitanteFormHandle {
   validate: () => boolean
 }
@@ -12,6 +14,9 @@ export interface SolicitanteFormHandle {
 interface Props {
   sol: Solicitante
   onChange: (sol: Solicitante) => void
+  // onValidSubmit e submitLabel só têm efeito juntos: usados quando este formulário
+  // é usado como uma etapa autocontida com seu próprio botão de avançar (não é o
+  // caso do App, que usa o botão "Gerar nota de débito" e a ref para validar).
   onValidSubmit?: (sol: Solicitante) => void
   submitLabel?: string
 }
@@ -31,7 +36,7 @@ export const SolicitanteForm = forwardRef<SolicitanteFormHandle, Props>(
       const map: Errors = {}
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof Solicitante
-        if (!map[key]) map[key] = issue.message
+        if (!map[key]) map[key] = issue.message // mantém só a primeira mensagem por campo
       }
       setErrors(map)
       return false
@@ -39,6 +44,7 @@ export const SolicitanteForm = forwardRef<SolicitanteFormHandle, Props>(
 
     useImperativeHandle(ref, () => ({ validate }))
 
+    // Modo "etapa com botão próprio" (usado com submitLabel)
     if (submitLabel) {
       return (
         <div style={card}>
@@ -50,6 +56,8 @@ export const SolicitanteForm = forwardRef<SolicitanteFormHandle, Props>(
       )
     }
 
+    // Modo "embutido no App": sem botão próprio; valida ao sair de cada campo (onBlur)
+    // e também quando o App chama a ref antes de gerar o PDF.
     return (
       <div style={card} data-testid="solicitante-form">
         <Fields sol={sol} errors={errors} set={set} onBlurValidate={validate} />
@@ -70,6 +78,8 @@ interface FieldsProps {
   onBlurValidate?: () => void
 }
 
+// onBlur={onBlurValidate} só é aplicado nos campos obrigatórios (marcados com *);
+// campos opcionais (RG, endereço, chave Pix) não precisam validar ao sair deles.
 function Fields({ sol, errors, set, onBlurValidate }: FieldsProps) {
   return (
     <>

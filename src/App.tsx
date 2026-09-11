@@ -13,6 +13,9 @@ type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 function App() {
   const solicitanteRef = useRef<SolicitanteFormHandle>(null)
+  // Guarda o timeout que volta o status para "idle" após sucesso/erro, para poder
+  // cancelá-lo se o usuário gerar de novo antes dele disparar (evita que uma mensagem
+  // antiga apague o status de uma geração mais recente).
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [sol, setSol] = useState<Solicitante>({
     nome: '', cpf: '', rg: '', endereco: '',
@@ -36,9 +39,12 @@ function App() {
       const pdfDoc = await gerarPDF(sol, comp, total, num)
       const hoje = new Date()
       const data = `${String(hoje.getDate()).padStart(2, '0')}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${hoje.getFullYear()}`
+      // Remove caracteres inválidos em nome de arquivo (Windows/macOS), já que sol.nome é texto livre
       const nomeSanitizado = (sol.nome || 'nota').replace(/[\\/:*?"<>|]/g, '')
       const nomeArquivo = `ND - ${data} - ${nomeSanitizado}.pdf`
       pdfDoc.save(nomeArquivo)
+      // Usa `num` (o que foi realmente impresso, podendo ter sido editado à mão) para
+      // avançar o contador de numeração, não o valor "ideal" recalculado do zero.
       confirmarNumeroND(num)
       setNum(proximoNumeroND())
       setUploadStatus('success')
@@ -54,6 +60,7 @@ function App() {
     <div style={page}>
       <Header />
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
+        {/* ref permite chamar validate() em handleGerar antes de gerar o PDF */}
         <SolicitanteForm
           ref={solicitanteRef}
           sol={sol}

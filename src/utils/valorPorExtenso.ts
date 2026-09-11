@@ -1,10 +1,19 @@
+// Converte um valor em reais para texto por extenso (ex: 1234.5 -> "Mil duzentos e trinta e quatro reais e cinquenta centavos"),
+// usado no campo "valor por extenso" da nota de débito.
 export function valorPorExtenso(valor: number): string {
+  // Convertemos para centavos inteiros ANTES de separar reais/centavos.
+  // Fazer isso com o valor decimal direto (ex: Math.round((valor - inteiro) * 100)) é sujeito a erro de
+  // ponto flutuante: somas de valores em reais podem resultar em algo como 207.99999999999997 em vez de
+  // 208, o que gerava "cem centavos" (nunca deveria passar de 99) em vez de arredondar para o real seguinte.
   const totalCentavos = Math.round(valor * 100)
   if (totalCentavos === 0) return 'zero reais'
+
   const un = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove',
     'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove']
   const dez = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa']
   const cen = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos']
+
+  // Escreve por extenso qualquer número de 0 a 999 (usado tanto para os milhares quanto para o resto)
   function ate999(n: number): string {
     if (n === 0) return ''
     if (n === 100) return 'cem'
@@ -15,6 +24,7 @@ export function valorPorExtenso(valor: number): string {
     else if (d === 1 || u > 0) { r += (r ? ' e ' : '') + un[d * 10 + u] }
     return r
   }
+
   const inteiro = Math.floor(totalCentavos / 100)
   const centavos = totalCentavos % 100
   let r = ''

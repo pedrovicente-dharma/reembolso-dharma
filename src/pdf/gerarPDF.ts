@@ -5,6 +5,8 @@ import { valorPorExtenso } from '../utils/valorPorExtenso'
 import { formatarReais } from '../utils/formatarReais'
 import { loadImage } from '../utils/loadImage'
 
+// Monta o PDF da nota de débito desenhando texto/linhas diretamente com jsPDF
+// (sem template), em coordenadas absolutas de milímetros (unidade padrão do jsPDF).
 export async function gerarPDF(
   sol: Solicitante,
   comp: Comprovante[],
@@ -15,8 +17,11 @@ export async function gerarPDF(
   const w = doc.internal.pageSize.getWidth()
   const h = doc.internal.pageSize.getHeight()
   const margemInferior = 20
-  let y = 15
+  let y = 15 // posição vertical "cursor", avançada manualmente após cada bloco desenhado
 
+  // Quebra para uma nova página se o próximo bloco não couber antes da margem inferior.
+  // Sem isso, conteúdo (ex: tabela de comprovantes longa) simplesmente sai da página e
+  // é cortado/invisível no PDF final, em vez de continuar numa próxima página.
   function garantirEspaco(alturaNecessaria: number) {
     if (y + alturaNecessaria > h - margemInferior) {
       doc.addPage()
@@ -71,7 +76,7 @@ export async function gerarPDF(
 
   y += 12
   const colDesc = 20, colCC = 85, colProj = 135, colValor = w - 20
-  const larguraDesc = colCC - colDesc - 4
+  const larguraDesc = colCC - colDesc - 4 // espaço disponível para a descrição antes de invadir a próxima coluna
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9)
   doc.text('Descrição', colDesc, y)
   doc.text('Centro de custo', colCC, y)
@@ -81,6 +86,8 @@ export async function gerarPDF(
 
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
   comp.forEach(c => {
+    // Quebra a descrição em várias linhas em vez de deixá-la vazar sobre a coluna
+    // "Centro de custo" quando o texto é mais longo que a coluna
     const linhasDescricao: string[] = doc.splitTextToSize(c.descricao, larguraDesc)
     const alturaLinha = Math.max(6, linhasDescricao.length * 5)
     garantirEspaco(alturaLinha)
@@ -91,6 +98,9 @@ export async function gerarPDF(
     y += alturaLinha
   })
 
+  // Os "31" e "60" abaixo são estimativas da altura dos blocos seguintes (total/extenso e
+  // dados bancários), grandes o suficiente para não abrir uma página extra desnecessária
+  // nem cortar o bloco no meio.
   garantirEspaco(31)
   y += 2; doc.setLineWidth(0.5); doc.line(20, y, w - 20, y); y += 7
   doc.setFont('helvetica', 'bold'); doc.setFontSize(10)

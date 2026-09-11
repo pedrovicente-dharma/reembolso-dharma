@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react'
 
+// Estilos inline compartilhados entre os componentes (sem CSS-in-JS/framework, só objetos de estilo)
+
+// Layout geral da página
 export const page: CSSProperties = {
   minHeight: '100vh',
   background: '#f0f2f5',
@@ -22,6 +25,7 @@ export const logoCircle: CSSProperties = {
   color: '#fff', fontWeight: 700, fontSize: 18,
 }
 
+// Cartões que envolvem cada seção do formulário (solicitante, comprovantes, detalhes)
 export const card: CSSProperties = {
   backgroundColor: '#ffffff',
   borderRadius: 16,
@@ -56,6 +60,7 @@ export const sectionIcon: CSSProperties = {
   fontSize: 15,
 }
 
+// Botões
 export const btnPrimary: CSSProperties = {
   padding: '11px 22px', borderRadius: 10, border: 'none',
   backgroundColor: '#1b1b1b', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',

@@ -1,5 +1,6 @@
 import { header, logoCircle } from '../styles'
 
+// Cabeçalho fixo da página, sem estado ou props
 export function Header() {
   return (
     <div style={header}>
