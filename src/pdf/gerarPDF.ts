@@ -13,7 +13,16 @@ export async function gerarPDF(
 ) {
   const doc = new jsPDF()
   const w = doc.internal.pageSize.getWidth()
+  const h = doc.internal.pageSize.getHeight()
+  const margemInferior = 20
   let y = 15
+
+  function garantirEspaco(alturaNecessaria: number) {
+    if (y + alturaNecessaria > h - margemInferior) {
+      doc.addPage()
+      y = 20
+    }
+  }
 
   const logoData = await loadImage('/dharma-logo.png')
   if (logoData) {
@@ -62,6 +71,7 @@ export async function gerarPDF(
 
   y += 12
   const colDesc = 20, colCC = 85, colProj = 135, colValor = w - 20
+  const larguraDesc = colCC - colDesc - 4
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9)
   doc.text('Descrição', colDesc, y)
   doc.text('Centro de custo', colCC, y)
@@ -71,13 +81,17 @@ export async function gerarPDF(
 
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
   comp.forEach(c => {
-    doc.text(c.descricao, colDesc, y)
+    const linhasDescricao: string[] = doc.splitTextToSize(c.descricao, larguraDesc)
+    const alturaLinha = Math.max(6, linhasDescricao.length * 5)
+    garantirEspaco(alturaLinha)
+    doc.text(linhasDescricao, colDesc, y)
     doc.text(c.centroCusto, colCC, y)
     doc.text(c.projeto, colProj, y)
     doc.text(formatarReais(c.valor).replace('R$ ', ''), colValor, y, { align: 'right' })
-    y += 6
+    y += alturaLinha
   })
 
+  garantirEspaco(31)
   y += 2; doc.setLineWidth(0.5); doc.line(20, y, w - 20, y); y += 7
   doc.setFont('helvetica', 'bold'); doc.setFontSize(10)
   doc.text('VALOR DA NOTA DE DÉBITO [R$]', colDesc, y)
@@ -85,6 +99,7 @@ export async function gerarPDF(
   y += 10; doc.setFont('helvetica', 'normal'); doc.setFontSize(10)
   doc.text(`Valor por extenso: ${valorPorExtenso(total)}`, 20, y)
 
+  garantirEspaco(60)
   y += 14
   doc.setFillColor(0, 0, 0); doc.rect(20, y, w - 40, 8, 'F')
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255)

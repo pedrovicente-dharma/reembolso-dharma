@@ -59,4 +59,11 @@ describe('SolicitanteForm', () => {
     fireEvent.change(screen.getByPlaceholderText(/Gabriel/i), { target: { value: 'Pedro' } })
     expect(screen.queryByText('Nome obrigatório')).not.toBeInTheDocument()
   })
+
+  it('sem submitLabel, valida ao sair do campo (onBlur)', () => {
+    const onChange = vi.fn()
+    render(<SolicitanteForm sol={solVazio} onChange={onChange} />)
+    fireEvent.blur(screen.getByPlaceholderText(/Gabriel/i))
+    expect(screen.getByText('Nome obrigatório')).toBeInTheDocument()
+  })
 })

@@ -70,7 +70,7 @@ interface FieldsProps {
   onBlurValidate?: () => void
 }
 
-function Fields({ sol, errors, set }: FieldsProps) {
+function Fields({ sol, errors, set, onBlurValidate }: FieldsProps) {
   return (
     <>
       <div style={sectionTitle}>
@@ -83,6 +83,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.nome}
             onChange={e => set('nome', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="Ex: Gabriel Gustavo Henriques da Costa"
             style={{ ...inputStyle, borderColor: errors.nome ? '#dc2626' : undefined }}
           />
@@ -93,6 +94,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.cpf}
             onChange={e => set('cpf', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="000.000.000-00"
             style={{ ...inputStyle, borderColor: errors.cpf ? '#dc2626' : undefined }}
           />
@@ -114,6 +116,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.banco}
             onChange={e => set('banco', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="Ex: NU PAGAMENTOS S.A (260)"
             style={{ ...inputStyle, borderColor: errors.banco ? '#dc2626' : undefined }}
           />
@@ -124,6 +127,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.agencia}
             onChange={e => set('agencia', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="0001"
             style={{ ...inputStyle, borderColor: errors.agencia ? '#dc2626' : undefined }}
           />
@@ -134,6 +138,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.conta}
             onChange={e => set('conta', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="0000000-0"
             style={{ ...inputStyle, borderColor: errors.conta ? '#dc2626' : undefined }}
           />
@@ -148,6 +153,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.titular}
             onChange={e => set('titular', e.target.value)}
+            onBlur={onBlurValidate}
             placeholder="Nome completo do titular"
             style={{ ...inputStyle, borderColor: errors.titular ? '#dc2626' : undefined }}
           />
