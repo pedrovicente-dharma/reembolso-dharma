@@ -1,5 +1,6 @@
 import { google } from 'googleapis'
 import { Readable } from 'stream'
+import { validarUpload, escaparSlack } from './_validateUpload.js'
 
 export const config = {
   api: {
@@ -8,6 +9,8 @@ export const config = {
     },
   },
 }
+
+const ENV_OBRIGATORIAS = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN', 'DRIVE_FOLDER_ID']
 
 async function notifySlack({ solicitante, numeracao, valorTotal, centroCusto, projeto, folderId }) {
   const webhookUrl = process.env.SLACK_WEBHOOK_URL?.trim()
@@ -18,9 +21,10 @@ async function notifySlack({ solicitante, numeracao, valorTotal, centroCusto, pr
     currency: 'BRL',
   }).format(valorTotal || 0)
   const driveLink = `https://drive.google.com/drive/folders/${folderId}`
+  const campo = (v) => (v ? escaparSlack(v) : '—')
 
   const payload = {
-    text: `Novo reembolso enviado ao Drive: ${solicitante || '—'} — ${valorFormatado}`,
+    text: `Novo reembolso enviado ao Drive: ${campo(solicitante)} — ${valorFormatado}`,
     blocks: [
       {
         type: 'section',
@@ -28,11 +32,11 @@ async function notifySlack({ solicitante, numeracao, valorTotal, centroCusto, pr
           type: 'mrkdwn',
           text: [
             '*✅ Reembolso enviado ao Google Drive*',
-            `*Solicitante:* ${solicitante || '—'}`,
-            `*Numeração:* ${numeracao || '—'}`,
+            `*Solicitante:* ${campo(solicitante)}`,
+            `*Numeração:* ${campo(numeracao)}`,
             `*Valor total:* ${valorFormatado}`,
-            `*Centro de custo:* ${centroCusto || '—'}`,
-            `*Projeto:* ${projeto || '—'}`,
+            `*Centro de custo:* ${campo(centroCusto)}`,
+            `*Projeto:* ${campo(projeto)}`,
             `*Pasta no Drive:* <${driveLink}|Abrir pasta>`,
           ].join('\n'),
         },
@@ -59,21 +63,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' })
   }
 
-  try {
-    const { folderName, files, solicitante, numeracao, valorTotal, centroCusto, projeto } = req.body
+  const faltando = ENV_OBRIGATORIAS.filter((nome) => !process.env[nome]?.trim())
+  if (faltando.length > 0) {
+    console.error('Variáveis de ambiente ausentes:', faltando.join(', '))
+    return res.status(500).json({ error: 'Servidor sem configuração do Google Drive. Avise o time de tecnologia.' })
+  }
 
-    if (!folderName || !files || files.length === 0) {
-      return res.status(400).json({ error: 'Dados inválidos' })
-    }
+  const validacao = validarUpload(req.body)
+  if (!validacao.ok) {
+    return res.status(400).json({ error: validacao.error })
+  }
+
+  try {
+    const { folderName, files, solicitante, numeracao, valorTotal, centroCusto, projeto } = validacao.data
 
     const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID?.trim(),
-  process.env.GOOGLE_CLIENT_SECRET?.trim(),
-  'https://developers.google.com/oauthplayground'
+      process.env.GOOGLE_CLIENT_ID.trim(),
+      process.env.GOOGLE_CLIENT_SECRET.trim(),
+      'https://developers.google.com/oauthplayground',
     )
 
     oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN?.trim(),
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN.trim(),
     })
 
     const drive = google.drive({ version: 'v3', auth: oauth2Client })
@@ -82,7 +93,7 @@ export default async function handler(req, res) {
       requestBody: {
         name: folderName,
         mimeType: 'application/vnd.google-apps.folder',
-        parents: [process.env.DRIVE_FOLDER_ID],
+        parents: [process.env.DRIVE_FOLDER_ID.trim()],
       },
       fields: 'id',
     })
@@ -90,7 +101,6 @@ export default async function handler(req, res) {
     const newFolderId = folder.data.id
 
     for (const file of files) {
-      const buffer = Buffer.from(file.data, 'base64')
       await drive.files.create({
         requestBody: {
           name: file.name,
@@ -98,7 +108,7 @@ export default async function handler(req, res) {
         },
         media: {
           mimeType: file.mimeType,
-          body: Readable.from(buffer),
+          body: Readable.from(file.buffer),
         },
       })
     }
