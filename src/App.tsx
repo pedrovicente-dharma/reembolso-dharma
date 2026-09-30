@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Solicitante, Comprovante } from './types'
 import { page, btnGerar } from './styles'
 import { gerarPDF } from './pdf/gerarPDF'
 import { uploadDrive } from './api/uploadDrive'
 import { gerarNumeracao } from './utils/gerarNumeracao'
 import { Header } from './components/Header'
-import { SolicitanteForm } from './components/SolicitanteForm'
+import { SolicitanteForm, type SolicitanteFormHandle } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -18,12 +18,18 @@ function App() {
   const [comp, setComp] = useState<Comprovante[]>([])
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle')
   const [uploadMsg, setUploadMsg] = useState('')
+  const solFormRef = useRef<SolicitanteFormHandle>(null)
 
   const total = comp.reduce((s, c) => s + c.valor, 0)
   const podGerar = comp.length > 0
   const carregando = uploadStatus === 'loading'
 
   async function handleGerar() {
+    if (!solFormRef.current?.validate()) {
+      setUploadStatus('error')
+      setUploadMsg('Preencha corretamente os dados do solicitante antes de gerar a nota')
+      return
+    }
     setUploadStatus('loading')
     setUploadMsg('Gerando PDF...')
     try {
@@ -49,9 +55,9 @@ function App() {
       <Header />
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
         <SolicitanteForm
+          ref={solFormRef}
           sol={sol}
           onChange={setSol}
-          onValidSubmit={handleGerar}
         />
         <ComprovantesSection comp={comp} onChange={setComp} />
 
