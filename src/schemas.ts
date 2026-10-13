@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const SolicitanteSchema = z.object({
   nome:     z.string().min(1, 'Nome obrigatório'),
-  cpf:      z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido (use 000.000.000-00)'),
+  cpf:      z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido (deve ter 11 dígitos)'),
   banco:    z.string().min(1, 'Banco obrigatório'),
   agencia:  z.string().min(1, 'Agência obrigatória'),
   conta:    z.string().min(1, 'Conta obrigatória'),

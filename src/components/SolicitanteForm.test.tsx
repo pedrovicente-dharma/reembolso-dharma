@@ -40,6 +40,12 @@ describe('SolicitanteForm', () => {
     expect(screen.getByText(/CPF inválido/i)).toBeInTheDocument()
   })
 
+  it('formata o CPF automaticamente ao digitar só os números', () => {
+    const { onChange } = renderForm(solVazio)
+    fireEvent.change(screen.getByPlaceholderText('000.000.000-00'), { target: { value: '17630823770' } })
+    expect(onChange).toHaveBeenCalledWith({ ...solVazio, cpf: '176.308.237-70' })
+  })
+
   it('não chama onValidSubmit quando dados são inválidos', () => {
     const { onValidSubmit } = renderForm(solVazio)
     fireEvent.click(screen.getByText('Enviar'))
