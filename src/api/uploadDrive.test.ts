@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { uploadDrive, compressImage } from './uploadDrive'
+import type jsPDF from 'jspdf'
 import type { Solicitante, Comprovante } from '../types'
 
 const sol: Solicitante = {
@@ -13,6 +14,18 @@ const compSemArquivo: Comprovante[] = [
 
 const mockPdf = {
   output: vi.fn().mockReturnValue('data:application/pdf;base64,PDFBASE64'),
+}
+
+const pdf = mockPdf as unknown as jsPDF
+
+type UploadPayload = {
+  folderName: string
+  files: { name: string; mimeType: string; data: string }[]
+  solicitante: string
+  numeracao: string
+  valorTotal: number
+  centroCusto: string
+  projeto: string
 }
 
 beforeEach(() => {
@@ -53,7 +66,7 @@ describe('uploadDrive', () => {
       json: () => Promise.resolve({ folderId: 'abc123' }),
     }))
 
-    const result = await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
+    const result = await uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025')
     expect(result.folderId).toBe('abc123')
   })
 
@@ -64,7 +77,7 @@ describe('uploadDrive', () => {
       text: () => Promise.resolve(JSON.stringify({ error: 'Quota excedida' })),
     }))
 
-    await expect(uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025'))
+    await expect(uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025'))
       .rejects.toThrow('Quota excedida')
   })
 
@@ -75,7 +88,7 @@ describe('uploadDrive', () => {
       text: () => Promise.resolve('Request Entity Too Large'),
     }))
 
-    await expect(uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025'))
+    await expect(uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025'))
       .rejects.toThrow('muito grandes para enviar')
   })
 
@@ -86,41 +99,41 @@ describe('uploadDrive', () => {
       text: () => Promise.resolve('<html>Bad Gateway</html>'),
     }))
 
-    await expect(uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025'))
+    await expect(uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025'))
       .rejects.toThrow('Erro no upload para o Drive')
   })
 
   it('payload contém só o PDF quando nenhum comprovante tem arquivo', async () => {
-    let capturedBody: any
+    let capturedBody = {} as UploadPayload
     vi.stubGlobal('fetch', vi.fn().mockImplementation((_url, opts) => {
       capturedBody = JSON.parse(opts.body)
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ folderId: 'x' }) })
     }))
 
-    await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
+    await uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025')
     expect(capturedBody.files).toHaveLength(1)
     expect(capturedBody.files[0].mimeType).toBe('application/pdf')
   })
 
   it('nome da pasta inclui data, nome do solicitante e numeração', async () => {
-    let capturedBody: any
+    let capturedBody = {} as UploadPayload
     vi.stubGlobal('fetch', vi.fn().mockImplementation((_url, opts) => {
       capturedBody = JSON.parse(opts.body)
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ folderId: 'x' }) })
     }))
 
-    await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
+    await uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025')
     expect(capturedBody.folderName).toMatch(/^\d{4}-\d{2}-\d{2} - Ana Silva - ND 001\/2025$/)
   })
 
   it('payload inclui dados para o alerta do Slack (solicitante, numeração, valor, CC e projeto)', async () => {
-    let capturedBody: any
+    let capturedBody = {} as UploadPayload
     vi.stubGlobal('fetch', vi.fn().mockImplementation((_url, opts) => {
       capturedBody = JSON.parse(opts.body)
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ folderId: 'x' }) })
     }))
 
-    await uploadDrive(sol, compSemArquivo, mockPdf as any, 'ND 001/2025')
+    await uploadDrive(sol, compSemArquivo, pdf, 'ND 001/2025')
     expect(capturedBody.solicitante).toBe('Ana Silva')
     expect(capturedBody.numeracao).toBe('ND 001/2025')
     expect(capturedBody.valorTotal).toBe(50)
@@ -148,8 +161,8 @@ describe('compressImage', () => {
     stubImagem(4000, 3000)
     const canvasCtx = { drawImage: vi.fn() }
     const blobFake = new Blob(['jpeg-comprimido'], { type: 'image/jpeg' })
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(canvasCtx as any)
-    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((cb: any) => cb(blobFake))
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(canvasCtx as unknown as CanvasRenderingContext2D)
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((cb: BlobCallback) => cb(blobFake))
 
     const imgFile = new File(['conteudo-grande'], 'foto-celular.png', { type: 'image/png' })
     const result = await compressImage(imgFile)
