@@ -7,17 +7,21 @@ import { gerarNumeracao } from './utils/gerarNumeracao'
 import { Header } from './components/Header'
 import { SolicitanteForm, type SolicitanteFormHandle } from './components/SolicitanteForm'
 import { ComprovantesSection } from './components/ComprovantesSection'
+import { SucessoReembolso } from './components/SucessoReembolso'
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error'
 
+const SOLICITANTE_VAZIO: Solicitante = {
+  nome: '', cpf: '',
+  banco: '', agencia: '', conta: '', chavePix: '', titular: '',
+}
+
 function App() {
-  const [sol, setSol] = useState<Solicitante>({
-    nome: '', cpf: '',
-    banco: '', agencia: '', conta: '', chavePix: '', titular: '',
-  })
+  const [sol, setSol] = useState<Solicitante>(SOLICITANTE_VAZIO)
   const [comp, setComp] = useState<Comprovante[]>([])
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle')
   const [uploadMsg, setUploadMsg] = useState('')
+  const [enviado, setEnviado] = useState<{ numeracao: string; total: number } | null>(null)
   const solFormRef = useRef<SolicitanteFormHandle>(null)
 
   const total = comp.reduce((s, c) => s + c.valor, 0)
@@ -41,13 +45,32 @@ function App() {
       setUploadMsg('Enviando para o Drive...')
       await uploadDrive(sol, comp, pdfDoc, numeracao)
 
+      setEnviado({ numeracao, total })
       setUploadStatus('success')
-      setUploadMsg('PDF gerado e enviado ao Drive com sucesso!')
-      setTimeout(() => { setUploadStatus('idle'); setUploadMsg('') }, 4000)
+      setUploadMsg('')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
       setUploadStatus('error')
       setUploadMsg(err instanceof Error ? err.message : 'Erro ao gerar o PDF')
     }
+  }
+
+  function handleNovo() {
+    setSol(SOLICITANTE_VAZIO)
+    setComp([])
+    setEnviado(null)
+    setUploadStatus('idle')
+  }
+
+  if (enviado) {
+    return (
+      <div style={page}>
+        <Header />
+        <div style={{ maxWidth: 820, margin: '0 auto' }}>
+          <SucessoReembolso numeracao={enviado.numeracao} total={enviado.total} onNovo={handleNovo} />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -69,11 +92,6 @@ function App() {
           {carregando ? uploadMsg : 'Gerar nota de débito (PDF)'}
         </button>
 
-        {uploadStatus === 'success' && (
-          <p style={{ color: '#16a34a', fontSize: 13, textAlign: 'center', marginTop: 10, fontWeight: 500 }}>
-            ✓ {uploadMsg}
-          </p>
-        )}
         {uploadStatus === 'error' && (
           <p style={{ color: '#dc2626', fontSize: 13, textAlign: 'center', marginTop: 10, fontWeight: 500 }}>
             ✗ {uploadMsg}

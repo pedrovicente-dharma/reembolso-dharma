@@ -16,7 +16,7 @@ function adicionarComprovante() {
 }
 
 function preencherSolicitante() {
-  fireEvent.change(screen.getByPlaceholderText(/Gabriel/i), { target: { value: 'Ana Silva' } })
+  fireEvent.change(screen.getByPlaceholderText(/Mariana/i), { target: { value: 'Ana Silva' } })
   fireEvent.change(screen.getByPlaceholderText('000.000.000-00'), { target: { value: '123.456.789-00' } })
   fireEvent.change(screen.getByPlaceholderText(/NU PAGAMENTOS/i), { target: { value: 'Nubank' } })
   fireEvent.change(screen.getByPlaceholderText('0001'), { target: { value: '0001' } })
@@ -46,5 +46,6 @@ describe('App — geração da nota', () => {
 
     await waitFor(() => expect(uploadDrive).toHaveBeenCalledTimes(1))
     expect(gerarPDF).toHaveBeenCalledTimes(1)
+    expect(await screen.findByText('Reembolso solicitado!')).toBeInTheDocument()
   })
 })
