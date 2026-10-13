@@ -1,18 +1,24 @@
-import { useState } from 'react'
+import { useImperativeHandle, useState, type Ref } from 'react'
 import type { Solicitante } from '../types'
 import { SolicitanteSchema } from '../schemas'
 import { card, gridStyle, labelStyle, inputStyle, sectionTitle, sectionIcon, subHeader } from '../styles'
 
 type Errors = Partial<Record<keyof Solicitante, string>>
 
+// Permite ao pai (App) validar o formulário e exibir os erros antes de gerar a nota
+export interface SolicitanteFormHandle {
+  validate: () => boolean
+}
+
 interface Props {
   sol: Solicitante
   onChange: (sol: Solicitante) => void
-  onValidSubmit: (sol: Solicitante) => void
+  onValidSubmit?: (sol: Solicitante) => void
   submitLabel?: string
+  ref?: Ref<SolicitanteFormHandle>
 }
 
-export function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel }: Props) {
+export function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel, ref }: Props) {
   const [errors, setErrors] = useState<Errors>({})
 
   function set(campo: keyof Solicitante, v: string) {
@@ -32,11 +38,13 @@ export function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel }: P
     return false
   }
 
+  useImperativeHandle(ref, () => ({ validate }))
+
   if (submitLabel) {
     return (
       <div style={card}>
         <Fields sol={sol} errors={errors} set={set} />
-        <button onClick={() => validate() && onValidSubmit(sol)} style={{ marginTop: 16 }}>
+        <button onClick={() => validate() && onValidSubmit?.(sol)} style={{ marginTop: 16 }}>
           {submitLabel}
         </button>
       </div>
@@ -45,7 +53,7 @@ export function SolicitanteForm({ sol, onChange, onValidSubmit, submitLabel }: P
 
   return (
     <div style={card} data-testid="solicitante-form">
-      <Fields sol={sol} errors={errors} set={set} onBlurValidate={validate} />
+      <Fields sol={sol} errors={errors} set={set} />
     </div>
   )
 }
@@ -59,7 +67,6 @@ interface FieldsProps {
   sol: Solicitante
   errors: Errors
   set: (campo: keyof Solicitante, v: string) => void
-  onBlurValidate?: () => void
 }
 
 function Fields({ sol, errors, set }: FieldsProps) {
