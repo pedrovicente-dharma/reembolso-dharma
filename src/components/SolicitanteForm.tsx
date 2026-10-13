@@ -1,6 +1,7 @@
 import { useImperativeHandle, useState, type Ref } from 'react'
 import type { Solicitante } from '../types'
 import { SolicitanteSchema } from '../schemas'
+import { formatarCPF } from '../utils/formatarCPF'
 import { card, gridStyle, labelStyle, inputStyle, sectionTitle, sectionIcon, subHeader } from '../styles'
 
 type Errors = Partial<Record<keyof Solicitante, string>>
@@ -90,8 +91,8 @@ function Fields({ sol, errors, set }: FieldsProps) {
         <div>
           <label style={labelStyle}>CPF *</label>
           <input
-            type="text" value={sol.cpf}
-            onChange={e => set('cpf', e.target.value)}
+            type="text" inputMode="numeric" value={sol.cpf}
+            onChange={e => set('cpf', formatarCPF(e.target.value))}
             placeholder="000.000.000-00"
             style={{ ...inputStyle, borderColor: errors.cpf ? '#dc2626' : undefined }}
           />
