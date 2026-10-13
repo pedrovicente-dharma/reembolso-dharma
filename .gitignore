@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env files (credenciais) — só o .env.example é versionado
+.env
+.env.*
+!.env.example
