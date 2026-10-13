@@ -56,7 +56,7 @@ describe('SolicitanteForm', () => {
     renderForm(solVazio)
     fireEvent.click(screen.getByText('Enviar'))
     expect(screen.getByText('Nome obrigatório')).toBeInTheDocument()
-    fireEvent.change(screen.getByPlaceholderText(/Gabriel/i), { target: { value: 'Pedro' } })
+    fireEvent.change(screen.getByPlaceholderText(/Mariana/i), { target: { value: 'Pedro' } })
     expect(screen.queryByText('Nome obrigatório')).not.toBeInTheDocument()
   })
 })

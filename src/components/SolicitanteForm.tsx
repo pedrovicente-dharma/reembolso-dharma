@@ -75,7 +75,7 @@ function Fields({ sol, errors, set }: FieldsProps) {
           <input
             type="text" value={sol.nome}
             onChange={e => set('nome', e.target.value)}
-            placeholder="Ex: Gabriel Gustavo Henriques da Costa"
+            placeholder="Ex: Mariana Alves Ribeiro"
             style={{ ...inputStyle, borderColor: errors.nome ? '#dc2626' : undefined }}
           />
           <ErrorMsg msg={errors.nome} />
