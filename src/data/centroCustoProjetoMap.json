@@ -1,13 +1,15 @@
 {
   "AI Lab": [
-    "BID - Reforma Tributária"
+    "BID - Reforma Tributária",
+    "Banco Safra - Treinamento de SSLMs"
   ],
   "AI Services": [
     "AGU - Depósitos Judiciais",
     "Boston Scientific - Evidence Ald",
     "Descomplica - SLM",
     "LORINVEST - Vibe Coding",
-    "NORSUL - Cérebro de Manutenção",
+    "NORSUL - Cérebro de Manutenção - Onda 1",
+    "NORSUL - Cérebro de Manutenção - Onda 2",
     "NORSUL - Praticagem",
     "NORSUL - Squad IA",
     "Sileto - Onda 1",
@@ -44,8 +46,7 @@
     "COM - Vendas"
   ],
   "Corretor de Redação": [
-    "Corretor de Redação - Descomplica",
-    "Corretor de Redação - Workfuse"
+    "Corretor de Redação - Descomplica"
   ],
   "Diretoria": [
     "DIR - Fundadores"
@@ -87,14 +88,13 @@
     "Produto Maquinaria - Samsara"
   ],
   "Produto OCR": [
-    "Prod OCR - CIPA",
-    "Prod OCR - Letrus",
-    "Prod OCR - MPGO",
     "Prod OCR - MVP",
+    "Prod OCR - Marketplace",
     "Prod OCR - Simetrio",
     "Prod OCR - Sydle MPSE",
     "Prod OCR - V1",
-    "Prod OCR - V2"
+    "Prod OCR - V2",
+    "Prod OCR - Xertica"
   ],
   "Projetos Internos": [
     "Projetos Internos - Harness"
